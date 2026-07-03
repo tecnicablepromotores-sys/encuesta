@@ -1,116 +1,30 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Solicitud de Conexión a Internet</title>
-    <style>
-        :root { --fondo: #121214; --tarjeta: #1a1a1e; --texto: #e1e1e6; --texto-secundario: #a8a8b3; --azul: #2563eb; --azul-hover: #1d4ed8; --verde: #10b981; --verde-hover: #059669; --bordes: #29292e; --entradas: #121214; }
-        body { font-family: sans-serif; background-color: var(--fondo); color: var(--texto); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box; }
-        .contenedor { background-color: var(--tarjeta); width: 100%; max-width: 700px; padding: 32px; border-radius: 12px; border: 1px solid var(--bordes); }
-        .encabezado { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--bordes); padding-bottom: 20px; }
-        .fila-doble { display: flex; gap: 16px; margin-bottom: 16px; }
-        .campo { margin-bottom: 16px; flex: 1; display: flex; flex-direction: column; }
-        label { font-size: 14px; margin-bottom: 8px; font-weight: 500; color: var(--texto); }
-        input, select, textarea { background-color: var(--entradas); color: var(--texto); padding: 12px; border: 1px solid var(--bordes); border-radius: 6px; width: 100%; box-sizing: border-box; }
-        .btn { background-color: var(--azul); color: white; padding: 14px; border-radius: 6px; width: 100%; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; }
-        .btn:disabled { background-color: #494949; cursor: not-allowed; }
-        .alerta { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: center; font-weight: bold; }
-        .exito { background-color: #122c1e; color: #4ade80; border: 1px solid #1f4d36; }
-        .error { background-color: #3c1e1e; color: #f87171; border: 1px solid #5a2828; }
-        .diagnostico { margin-top: 20px; padding: 15px; background: #262629; border-radius: 8px; color: #a8a8b3; font-size: 12px; display: none; }
-        @media (max-width: 600px) { .fila-doble { flex-direction: column; } }
-    </style>
-</head>
+<html>
 <body>
+    <button id="btnTest">PRUEBA DE CONEXIÓN</button>
+    <div id="resultado">Esperando...</div>
 
-<div class="contenedor">
-    <div class="encabezado">
-        <h2>Solicitud de Conexión a Internet</h2>
-        <p>Formulario de Registro</p>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    <form id="formularioEncuesta">
-        <div class="fila-doble">
-            <div class="campo"><label>Nombres *</label><input type="text" id="txtNombres" required></div>
-            <div class="campo"><label>Apellidos *</label><input type="text" id="txtApellidos" required></div>
-        </div>
-        <div class="fila-doble">
-            <div class="campo"><label>CI *</label><input type="text" id="txtCI" required></div>
-            <div class="campo"><label>Correo *</label><input type="email" id="txtEmail" required></div>
-        </div>
-        <div class="campo"><label>Dirección *</label><input type="text" id="txtDireccion" required></div>
-        <div class="campo"><label>Referencia *</label><textarea id="txtReferencia" rows="2" required></textarea></div>
-        <div class="campo"><label>Coordenadas *</label>
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="txtCoordenadas" required placeholder="Lat, Long">
-                <button type="button" class="btn" id="btnCapturarGPS" style="margin:0; width: auto;">📍</button>
-            </div>
-        </div>
-        <div class="fila-doble">
-            <div class="campo"><label>Localidad *</label><input type="text" id="txtLocalidad" required></div>
-            <div class="campo"><label>Ciudad *</label><input type="text" id="txtCiudad" required></div>
-        </div>
-        <div class="campo"><label>Foto Cédula *</label><input type="file" id="fileFrente" accept="image/*" required></div>
-        
-        <button type="submit" class="btn" id="btnEnviar">Enviar Información</button>
-        
-        <div id="cajaAlerta" class="alerta"></div>
-        <div id="cajaDiagnostico" class="diagnostico">
-            <strong>Error técnico:</strong> <span id="textoError"></span>
-            <p style="margin-top:5px;"><em>Verifica en Firebase -> Firestore -> Reglas que esté: allow read, write: if true;</em></p>
-        </div>
-    </form>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
-    const config = {
-        apiKey: "AIzaSyAJcNNQWzk99nvk8fUW001zeDsM_XTwFzU",
-        projectId: "formulario-9b119",
-        storageBucket: "formulario-9b119.firebasestorage.app",
-        appId: "1:648279847643:web:802107ded1f0f5957f52fe"
-    };
-
-    const db = getFirestore(initializeApp(config));
-
-    document.getElementById('btnCapturarGPS').addEventListener('click', () => {
-        navigator.geolocation.getCurrentPosition(p => 
-            document.getElementById('txtCoordenadas').value = `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`);
-    });
-
-    document.getElementById('formularioEncuesta').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('btnEnviar');
-        const aviso = document.getElementById('cajaAlerta');
-        const diag = document.getElementById('cajaDiagnostico');
-        const errorText = document.getElementById('textoError');
-        
-        btn.disabled = true; btn.innerText = "Enviando...";
-        
-        const reader = new FileReader();
-        reader.readAsDataURL(document.getElementById('fileFrente').files[0]);
-        reader.onload = async () => {
-            try {
-                await addDoc(collection(db, "encuestas"), {
-                    nombres: document.getElementById('txtNombres').value,
-                    apellidos: document.getElementById('txtApellidos').value,
-                    cedula: document.getElementById('txtCI').value,
-                    coordenadas: document.getElementById('txtCoordenadas').value,
-                    fecha: new Date().toISOString()
-                });
-                aviso.className = "alerta exito"; aviso.innerHTML = "¡Enviado con éxito!";
-                aviso.style.display = "block"; diag.style.display = "none";
-                document.getElementById('formularioEncuesta').reset();
-            } catch (err) {
-                aviso.className = "alerta error"; aviso.innerHTML = "Error al enviar.";
-                aviso.style.display = "block"; diag.style.display = "block";
-                errorText.innerText = err.message;
-            } finally { btn.disabled = false; btn.innerText = "Enviar Información"; }
+        const config = {
+            apiKey: "AIzaSyAJcNNQWzk99nvk8fUW001zeDsM_XTwFzU",
+            projectId: "formulario-9b119",
+            storageBucket: "formulario-9b119.firebasestorage.app",
+            appId: "1:648279847643:web:802107ded1f0f5957f52fe"
         };
-    });
-</script>
+
+        const db = getFirestore(initializeApp(config));
+
+        document.getElementById('btnTest').addEventListener('click', async () => {
+            try {
+                await addDoc(collection(db, "test"), { fecha: new Date() });
+                document.getElementById('resultado').innerText = "✅ ¡CONEXIÓN EXITOSA! Firebase responde.";
+            } catch (e) {
+                document.getElementById('resultado').innerText = "❌ ERROR: " + e.message;
+            }
+        });
+    </script>
 </body>
 </html>
