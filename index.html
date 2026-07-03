@@ -5,51 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Solicitud de Conexión a Internet</title>
     <style>
-        :root { 
-            --fondo: #121214; 
-            --tarjeta: #1a1a1e; 
-            --texto: #e1e1e6; 
-            --texto-secundario: #a8a8b3;
-            --azul: #2563eb; 
-            --azul-hover: #1d4ed8; 
-            --verde: #10b981;
-            --verde-hover: #059669;
-            --bordes: #29292e; 
-            --entradas: #121214;
-        }
-        body { font-family: sans-serif; background-color: var(--fondo); color: var(--texto); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; box-sizing: border-box; }
-        .contenedor { background-color: var(--tarjeta); width: 100%; max-width: 700px; padding: 32px; border-radius: 12px; border: 1px solid var(--bordes); box-sizing: border-box; }
+        :root { --fondo: #121214; --tarjeta: #1a1a1e; --texto: #e1e1e6; --texto-secundario: #a8a8b3; --azul: #2563eb; --azul-hover: #1d4ed8; --verde: #10b981; --verde-hover: #059669; --bordes: #29292e; --entradas: #121214; }
+        body { font-family: sans-serif; background-color: var(--fondo); color: var(--texto); margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box; }
+        .contenedor { background-color: var(--tarjeta); width: 100%; max-width: 700px; padding: 32px; border-radius: 12px; border: 1px solid var(--bordes); }
         .encabezado { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--bordes); padding-bottom: 20px; }
-        .encabezado h2 { margin: 0; font-size: 24px; color: #ffffff; }
-        .encabezado p { margin: 8px 0 0 0; font-size: 14px; color: var(--texto-secundario); }
         .fila-doble { display: flex; gap: 16px; margin-bottom: 16px; }
         .campo { margin-bottom: 16px; flex: 1; display: flex; flex-direction: column; }
         label { font-size: 14px; margin-bottom: 8px; font-weight: 500; color: var(--texto); }
-        input, select, textarea { background-color: var(--entradas); color: var(--texto); padding: 12px; border: 1px solid var(--bordes); border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--azul); }
-        
-        .grupo-coordenadas { display: flex; gap: 8px; }
-        .btn-gps { background-color: var(--verde); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; white-space: nowrap; transition: background 0.2s; }
-        .btn-gps:hover { background-color: var(--verde-hover); }
-        .btn-mapa { background-color: #4b5563; color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; white-space: nowrap; transition: background 0.2s; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-        .btn-mapa:hover { background-color: #374151; }
-
-        .contenedor-planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 4px; }
-        .plan-opcion { border: 2px solid var(--bordes); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; background-color: var(--entradas); transition: all 0.2s; }
-        .plan-opcion:hover { border-color: #4b5563; }
-        .plan-opcion.seleccionado { border-color: var(--azul); background-color: rgba(37, 99, 235, 0.1); }
-        .plan-opcion h4 { margin: 0 0 6px 0; font-size: 16px; color: #ffffff; }
-        .plan-opcion p { margin: 0 0 4px 0; font-size: 14px; font-weight: bold; color: var(--verde); }
-        .plan-opcion span { font-size: 12px; color: var(--texto-secundario); }
-        
-        .input-archivo { background-color: transparent; border: none; padding: 6px 0; color: var(--texto-secundario); }
-        .btn { background-color: var(--azul); color: #ffffff; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
-        .btn:hover { background-color: var(--azul-hover); }
-        .btn:disabled { background-color: #494949; color: #8d8d8d; cursor: not-allowed; }
-        .alerta { margin-top: 20px; padding: 20px; border-radius: 8px; font-size: 15px; text-align: center; display: none; line-height: 1.6; font-weight: bold; }
+        input, select, textarea { background-color: var(--entradas); color: var(--texto); padding: 12px; border: 1px solid var(--bordes); border-radius: 6px; width: 100%; box-sizing: border-box; }
+        .btn { background-color: var(--azul); color: white; padding: 14px; border-radius: 6px; width: 100%; border: none; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .btn:disabled { background-color: #494949; cursor: not-allowed; }
+        .alerta { margin-top: 20px; padding: 15px; border-radius: 8px; display: none; text-align: center; font-weight: bold; }
         .exito { background-color: #122c1e; color: #4ade80; border: 1px solid #1f4d36; }
         .error { background-color: #3c1e1e; color: #f87171; border: 1px solid #5a2828; }
-        @media (max-width: 600px) { .fila-doble { flex-direction: column; gap: 0; } .grupo-coordenadas { flex-direction: column; } .btn-gps, .btn-mapa { padding: 12px; text-align: center; } }
+        .diagnostico { margin-top: 20px; padding: 15px; background: #262629; border-radius: 8px; color: #a8a8b3; font-size: 12px; display: none; }
+        @media (max-width: 600px) { .fila-doble { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -57,68 +27,39 @@
 <div class="contenedor">
     <div class="encabezado">
         <h2>Solicitud de Conexión a Internet</h2>
-        <p>Formulario de Registro y Afiliación de Clientes</p>
+        <p>Formulario de Registro</p>
     </div>
 
     <form id="formularioEncuesta">
         <div class="fila-doble">
-            <div class="campo"><label>Nombre(s) *</label><input type="text" id="txtNombres" required placeholder="Ingresa tu Nombre(s)"></div>
-            <div class="campo"><label>Apellidos *</label><input type="text" id="txtApellidos" required placeholder="Ingresa tus Apellidos"></div>
+            <div class="campo"><label>Nombres *</label><input type="text" id="txtNombres" required></div>
+            <div class="campo"><label>Apellidos *</label><input type="text" id="txtApellidos" required></div>
         </div>
-
         <div class="fila-doble">
-            <div class="campo"><label>Cédula de Identidad (CI) *</label><input type="text" id="txtCI" required placeholder="Ingresa tu CI"></div>
-            <div class="campo"><label>Correo electrónico *</label><input type="email" id="txtEmail" required placeholder="Ingresa tu Correo electrónico"></div>
+            <div class="campo"><label>CI *</label><input type="text" id="txtCI" required></div>
+            <div class="campo"><label>Correo *</label><input type="email" id="txtEmail" required></div>
         </div>
-
-        <div class="campo"><label>Dirección Corta *</label><input type="text" id="txtDireccion" required placeholder="Ej. Calle Principal, Casa Nro 5"></div>
-        <div class="campo"><label>Punto de Referencia *</label><textarea id="txtReferencia" rows="2" required placeholder="Ej. Frente a la plaza, casa color azul con portón blanco"></textarea></div>
+        <div class="campo"><label>Dirección *</label><input type="text" id="txtDireccion" required></div>
+        <div class="campo"><label>Referencia *</label><textarea id="txtReferencia" rows="2" required></textarea></div>
+        <div class="campo"><label>Coordenadas *</label>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="txtCoordenadas" required placeholder="Lat, Long">
+                <button type="button" class="btn" id="btnCapturarGPS" style="margin:0; width: auto;">📍</button>
+            </div>
+        </div>
+        <div class="fila-doble">
+            <div class="campo"><label>Localidad *</label><input type="text" id="txtLocalidad" required></div>
+            <div class="campo"><label>Ciudad *</label><input type="text" id="txtCiudad" required></div>
+        </div>
+        <div class="campo"><label>Foto Cédula *</label><input type="file" id="fileFrente" accept="image/*" required></div>
         
-        <div class="campo">
-            <label>Coordenadas de Ubicación (Latitud, Longitud) *</label>
-            <div class="grupo-coordenadas">
-                <input type="text" id="txtCoordenadas" required placeholder="Ej. 10.9543, -64.0124">
-                <button type="button" class="btn-gps" id="btnCapturarGPS">📍 Mi Ubicación</button>
-                <a href="https://maps.google.com" target="_blank" class="btn-mapa">🗺️ Maps</a>
-            </div>
-        </div>
-
-        <div class="fila-doble">
-            <div class="campo"><label>Barrio / Localidad / Sector *</label><input type="text" id="txtLocalidad" required placeholder="Ej. Punta de Piedras / Tubores"></div>
-            <div class="campo"><label>Ciudad / Municipio *</label><input type="text" id="txtCiudad" required placeholder="Ej. Porlamar / Mariño"></div>
-        </div>
-
-        <div class="fila-doble">
-            <div class="campo"><label>Teléfono Celular *</label><input type="tel" id="txtTelefono" required placeholder="Ej. 0412-1234567"></div>
-            <div class="campo"><label>Teléfono Celular Adicional</label><input type="tel" id="txtTelefonoAdicional" placeholder="Opcional"></div>
-        </div>
-
-        <div class="campo">
-            <label>Plan de Internet / Servicio Solicitado *</label>
-            <div class="contenedor-planes">
-                <div class="plan-opcion" data-plan="Plan Básico - 400 Mbps ($30)"><h4>Básico</h4><p>$30 / mes</p><span>400 Mbps</span></div>
-                <div class="plan-opcion" data-plan="Plan Hogar - 600 Mbps ($35)"><h4>Hogar</h4><p>$35 / mes</p><span>600 Mbps</span></div>
-                <div class="plan-opcion" data-plan="Plan Turbo - 800 Mbps ($40)"><h4>Turbo</h4><p>$40 / mes</p><span>800 Mbps</span></div>
-                <div class="plan-opcion" data-plan="Plan 1 Gbps ($45)"><h4>Premium</h4><p>$45 / mes</p><span>1 Gbps</span></div>
-                <div class="plan-opcion" data-plan="Plan Solo TV ($10)"><h4>Solo TV</h4><p>$10 / mes</p><span>Servicio de TV</span></div>
-            </div>
-            <input type="hidden" id="txtPlanSeleccionado" required>
-        </div>
-
-        <div class="campo"><label>Foto de la Cédula de Identidad (Frente) *</label><input type="file" id="fileFrente" class="input-archivo" accept="image/*" required></div>
-
-        <div class="campo">
-            <label>Promotor Responsable del Registro *</label>
-            <select id="selPromotor" required>
-                <option value="" disabled selected>-- Selecciona el Promotor --</option>
-                <option value="Promotor 1">Promotor 1</option>
-                <option value="Promotor 2">Promotor 2</option>
-                <option value="Supervisor General">Supervisor General</option>
-            </select>
-        </div>
-
         <button type="submit" class="btn" id="btnEnviar">Enviar Información</button>
+        
         <div id="cajaAlerta" class="alerta"></div>
+        <div id="cajaDiagnostico" class="diagnostico">
+            <strong>Error técnico:</strong> <span id="textoError"></span>
+            <p style="margin-top:5px;"><em>Verifica en Firebase -> Firestore -> Reglas que esté: allow read, write: if true;</em></p>
+        </div>
     </form>
 </div>
 
@@ -126,76 +67,47 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    const configuracionFirebase = {
+    const config = {
         apiKey: "AIzaSyAJcNNQWzk99nvk8fUW001zeDsM_XTwFzU",
-        authDomain: "formulario-9b119.firebaseapp.com",
         projectId: "formulario-9b119",
         storageBucket: "formulario-9b119.firebasestorage.app",
-        messagingSenderId: "648279847643",
         appId: "1:648279847643:web:802107ded1f0f5957f52fe"
     };
 
-    const app = initializeApp(configuracionFirebase);
-    const db = getFirestore(app);
+    const db = getFirestore(initializeApp(config));
 
     document.getElementById('btnCapturarGPS').addEventListener('click', () => {
-        const txtCoord = document.getElementById('txtCoordenadas');
-        if (navigator.geolocation) {
-            txtCoord.value = "Obteniendo posición...";
-            navigator.geolocation.getCurrentPosition(
-                (pos) => txtCoord.value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`,
-                () => { alert("Error al obtener ubicación."); txtCoord.value = ""; },
-                { enableHighAccuracy: true }
-            );
-        }
+        navigator.geolocation.getCurrentPosition(p => 
+            document.getElementById('txtCoordenadas').value = `${p.coords.latitude.toFixed(6)}, ${p.coords.longitude.toFixed(6)}`);
     });
-
-    const tarjetasPlanes = document.querySelectorAll('.plan-opcion');
-    const inputPlanHidden = document.getElementById('txtPlanSeleccionado');
-    tarjetasPlanes.forEach(t => t.addEventListener('click', () => {
-        tarjetasPlanes.forEach(x => x.classList.remove('seleccionado'));
-        t.classList.add('seleccionado');
-        inputPlanHidden.value = t.getAttribute('data-plan');
-    }));
 
     document.getElementById('formularioEncuesta').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnEnviar');
         const aviso = document.getElementById('cajaAlerta');
-        const foto = document.getElementById('fileFrente').files[0];
+        const diag = document.getElementById('cajaDiagnostico');
+        const errorText = document.getElementById('textoError');
         
-        if (!inputPlanHidden.value) return alert("Selecciona un plan.");
-        btn.disabled = true;
-        btn.innerText = "Enviando...";
-
-        const lector = new FileReader();
-        lector.readAsDataURL(foto);
-        lector.onload = async () => {
+        btn.disabled = true; btn.innerText = "Enviando...";
+        
+        const reader = new FileReader();
+        reader.readAsDataURL(document.getElementById('fileFrente').files[0]);
+        reader.onload = async () => {
             try {
                 await addDoc(collection(db, "encuestas"), {
                     nombres: document.getElementById('txtNombres').value,
                     apellidos: document.getElementById('txtApellidos').value,
                     cedula: document.getElementById('txtCI').value,
-                    email: document.getElementById('txtEmail').value,
-                    direccion: document.getElementById('txtDireccion').value,
-                    referencia: document.getElementById('txtReferencia').value,
                     coordenadas: document.getElementById('txtCoordenadas').value,
-                    localidad: document.getElementById('txtLocalidad').value,
-                    ciudad: document.getElementById('txtCiudad').value,
-                    telefono: document.getElementById('txtTelefono').value,
-                    telefono_adicional: document.getElementById('txtTelefonoAdicional').value,
-                    plan: inputPlanHidden.value,
-                    promotor: document.getElementById('selPromotor').value,
-                    foto: lector.result,
                     fecha: new Date().toISOString()
                 });
-                aviso.className = "alerta exito";
-                aviso.innerHTML = "Registro enviado con éxito.";
-                aviso.style.display = "block";
+                aviso.className = "alerta exito"; aviso.innerHTML = "¡Enviado con éxito!";
+                aviso.style.display = "block"; diag.style.display = "none";
+                document.getElementById('formularioEncuesta').reset();
             } catch (err) {
-                aviso.className = "alerta error";
-                aviso.innerHTML = "Error al enviar.";
-                aviso.style.display = "block";
+                aviso.className = "alerta error"; aviso.innerHTML = "Error al enviar.";
+                aviso.style.display = "block"; diag.style.display = "block";
+                errorText.innerText = err.message;
             } finally { btn.disabled = false; btn.innerText = "Enviar Información"; }
         };
     });
