@@ -12,6 +12,8 @@
             --texto-secundario: #a8a8b3;
             --azul: #2563eb; 
             --azul-hover: #1d4ed8; 
+            --verde: #10b981;
+            --verde-hover: #059669;
             --bordes: #29292e; 
             --entradas: #121214;
         }
@@ -25,6 +27,22 @@
         label { font-size: 14px; margin-bottom: 8px; font-weight: 500; color: var(--texto); }
         input, select, textarea { background-color: var(--entradas); color: var(--texto); padding: 12px; border: 1px solid var(--bordes); border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--azul); }
+        
+        /* Contenedor de Coordenadas y Mapas */
+        .grupo-coordenadas { display: flex; gap: 8px; }
+        .btn-gps { background-color: var(--verde); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; white-space: nowrap; transition: background 0.2s; }
+        .btn-gps:hover { background-color: var(--verde-hover); }
+        .btn-mapa { background-color: #4b5563; color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; white-space: nowrap; transition: background 0.2s; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .btn-mapa:hover { background-color: #374151; }
+
+        /* Cuadrícula de Planes de Internet */
+        .contenedor-planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 4px; }
+        .plan-opcion { border: 2px solid var(--bordes); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; background-color: var(--entradas); transition: all 0.2s; }
+        .plan-opcion:hover { border-color: #4b5563; }
+        .plan-opcion.seleccionado { border-color: var(--azul); background-color: rgba(37, 99, 235, 0.1); }
+        .plan-opcion h4 { margin: 0 0 6px 0; font-size: 16px; color: #ffffff; }
+        .plan-opcion p { margin: 0; font-size: 13px; color: var(--texto-secundario); }
+        
         .input-archivo { background-color: transparent; border: none; padding: 6px 0; color: var(--texto-secundario); }
         .btn { background-color: var(--azul); color: #ffffff; border: none; padding: 14px; border-radius: 6px; font-size: 16px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 15px; transition: background 0.2s; }
         .btn:hover { background-color: var(--azul-hover); }
@@ -32,7 +50,7 @@
         .alerta { margin-top: 20px; padding: 20px; border-radius: 8px; font-size: 15px; text-align: center; display: none; line-height: 1.6; font-weight: bold; }
         .exito { background-color: #122c1e; color: #4ade80; border: 1px solid #1f4d36; }
         .error { background-color: #3c1e1e; color: #f87171; border: 1px solid #5a2828; }
-        @media (max-width: 600px) { .fila-doble { flex-direction: column; gap: 0; } }
+        @media (max-width: 600px) { .fila-doble { flex-direction: column; gap: 0; } .grupo-coordenadas { flex-direction: column; } .btn-gps, .btn-mapa { padding: 12px; text-align: center; } }
     </style>
 </head>
 <body>
@@ -54,27 +72,66 @@
             <div class="campo"><label>Correo electrónico *</label><input type="email" id="txtEmail" required placeholder="Ingresa tu Correo electrónico"></div>
         </div>
 
-        <div class="campo"><label>Dirección *</label><textarea id="txtDireccion" rows="3" required placeholder="Ingresa tu Dirección"></textarea></div>
-        <div class="campo"><label>Coordenadas *</label><input type="text" id="txtCoordenadas" required placeholder="Ej. 10.9012,-64.1234"></div>
-
-        <div class="fila-doble">
-            <div class="campo"><label>Barrio / Localidad / Departamento *</label><input type="text" id="txtLocalidad" required placeholder="Ingresa tu Barrio/Localidad/Departamento"></div>
-            <div class="campo"><label>Ciudad / Municipio *</label><input type="text" id="txtCiudad" required placeholder="Ingresa tu Ciudad/Municipio"></div>
+        <div class="campo"><label>Dirección Corta / Punto de Referencia *</label><textarea id="txtDireccion" rows="2" required placeholder="Ej. Frente a la plaza, casa color azul con portón blanco"></textarea></div>
+        
+        <div class="campo">
+            <label>Coordenadas de Ubicación (Latitud, Longitud) *</label>
+            <div class="grupo-coordenadas">
+                <input type="text" id="txtCoordenadas" required placeholder="Ej. 10.9543, -64.0124">
+                <button type="button" class="btn-gps" id="btnCapturarGPS">📍 Mi Ubicación</button>
+                <a href="https://maps.google.com" target="_blank" class="btn-mapa" id="lnkGoogleMaps">🗺️ Buscar en Maps</a>
+            </div>
         </div>
 
         <div class="fila-doble">
-            <div class="campo"><label>Código Postal *</label><input type="text" id="txtPostal" required placeholder="Ingresa tu Código Postal"></div>
-            <div class="campo"><label>Teléfono Celular *</label><input type="tel" id="txtTelefono" required placeholder="Ingresa tu Teléfono Celular"></div>
+            <div class="campo"><label>Barrio / Localidad / Sector *</label><input type="text" id="txtLocalidad" required placeholder="Ej. Punta de Piedras / Tubores"></div>
+            <div class="campo"><label>Ciudad / Municipio *</label><input type="text" id="txtCiudad" required placeholder="Ej. Porlamar / Mariño"></div>
         </div>
 
-        <div class="campo"><label>Teléfono Celular Adicional</label><input type="tel" id="txtTelefonoAdicional" placeholder="Ingresa un Teléfono Celular Adicional"></div>
+        <div class="fila-doble">
+            <div class="campo"><label>Código Postal *</label><input type="text" id="txtPostal" required placeholder="6301" value="6301"></div>
+            <div class="campo"><label>Teléfono Celular *</label><input type="tel" id="txtTelefono" required placeholder="Ej. 0412-1234567"></div>
+        </div>
 
-        <div class="campo"><label>Foto de identificación oficial (Frente) *</label><input type="file" id="fileFrente" class="input-archivo" accept="image/*" required></div>
-        <div class="campo"><label>Foto de identificación oficial (Atrás) *</label><input type="file" id="fileAtras" class="input-archivo" accept="image/*" required></div>
-        <div class="campo"><label>Foto de comprobante de domicilio *</label><input type="file" id="fileDomicilio" class="input-archivo" accept="image/*" required></div>
-        <div class="campo"><label>Cupón / Descuento</label><input type="file" id="fileCupon" class="input-archivo" accept="image/*"></div>
+        <div class="campo"><label>Teléfono Celular Adicional</label><input type="tel" id="txtTelefonoAdicional" placeholder="Opcional"></div>
 
-        <div class="campo"><label>Comentarios</label><textarea id="txtComentarios" rows="4" placeholder="Escribe aquí tus comentarios..."></textarea></div>
+        <div class="campo">
+            <label>Plan de Internet Solicitado *</label>
+            <div class="contenedor-planes">
+                <div class="plan-opcion" data-plan="Plan Hogar - 50 Mbps">
+                    <h4>Hogar</h4>
+                    <p>50 Mbps</p>
+                </div>
+                <div class="plan-opcion" data-plan="Plan Bronce - 100 Mbps">
+                    <h4>Bronce</h4>
+                    <p>100 Mbps</p>
+                </div>
+                <div class="plan-opcion" data-plan="Plan Plata - 200 Mbps">
+                    <h4>Plata</h4>
+                    <p>200 Mbps</p>
+                </div>
+                <div class="plan-opcion" data-plan="Plan Oro - 500 Mbps">
+                    <h4>Oro</h4>
+                    <p>500 Mbps</p>
+                </div>
+            </div>
+            <input type="hidden" id="txtPlanSeleccionado" required>
+        </div>
+
+        <div class="campo"><label>Foto de la Cédula de Identidad (Frente) *</label><input type="file" id="fileFrente" class="input-archivo" accept="image/*" required></div>
+
+        <div class="campo">
+            <label>Promotor Responsable del Registro *</label>
+            <select id="selPromotor" required>
+                <option value="" disabled selected>-- Selecciona el Promotor asignado --</option>
+                <option value="Promotor 1">Promotor 1</option>
+                <option value="Promotor 2">Promotor 2</option>
+                <option value="Promotor 3">Promotor 3</option>
+                <option value="Supervisor General">Supervisor General</option>
+            </select>
+        </div>
+
+        <div class="campo"><label>Comentarios / Observaciones Adicionales</label><textarea id="txtComentarios" rows="3" placeholder="Detalles de instalación, condiciones de cableado, etc."></textarea></div>
 
         <button type="submit" class="btn" id="btnEnviar">Enviar Información</button>
         <div id="cajaAlerta" class="alerta"></div>
@@ -97,7 +154,41 @@
     const app = initializeApp(configuracionFirebase);
     const db = getFirestore(app);
 
-    // FUNCIÓN CORE: Redimensiona, comprime y convierte la imagen a Base64 de forma asíncrona
+    // LÓGICA DE CAPTURA DE COORDENADAS (NATIVA GPS)
+    document.getElementById('btnCapturarGPS').addEventListener('click', () => {
+        const txtCoord = document.getElementById('txtCoordenadas');
+        if (navigator.geolocation) {
+            txtCoord.value = "Obteniendo posición...";
+            navigator.geolocation.getCurrentPosition(
+                (posicion) => {
+                    const lat = posicion.coords.latitude.toFixed(6);
+                    const lon = posicion.coords.longitude.toFixed(6);
+                    txtCoord.value = `${lat}, ${lon}`;
+                },
+                (error) => {
+                    alert("No se pudo obtener el GPS automáticamente. Usa el botón 'Buscar en Maps' para copiar las coordenadas manual.");
+                    txtCoord.value = "";
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        } else {
+            alert("Tu navegador no soporta geolocalización.");
+        }
+    });
+
+    // LÓGICA DE SELECCIÓN DE PLANES EN RECUADROS
+    const tarjetasPlanes = document.querySelectorAll('.plan-opcion');
+    const inputPlanHidden = document.getElementById('txtPlanSeleccionado');
+
+    tarjetasPlanes.forEach(tarjeta => {
+        tarjeta.addEventListener('click', () => {
+            tarjetasPlanes.forEach(t => t.classList.remove('seleccionado'));
+            tarjeta.classList.add('seleccionado');
+            inputPlanHidden.value = tarjeta.getAttribute('data-plan');
+        });
+    });
+
+    // COMPRESOR Y CONVERTIDOR ASÍNCRONO A BASE64
     function procesarYConvertirABase64(archivo) {
         return new Promise((resolver, rechazar) => {
             if (!archivo) return resolver("No adjunto");
@@ -111,7 +202,6 @@
                     const canvas = document.createElement("canvas");
                     const ctx = canvas.getContext("2d");
 
-                    // Definir resolución máxima para mantener el archivo por debajo de 200KB
                     const MAX_ANCHO = 800;
                     const MAX_ALTO = 600;
                     let ancho = img.width;
@@ -127,7 +217,6 @@
                     canvas.height = alto;
                     ctx.drawImage(img, 0, 0, ancho, alto);
 
-                    // Exportar como JPEG comprimido al 70% de calidad (Formato texto Base64 directo)
                     const dataUrlComprimida = canvas.toDataURL("image/jpeg", 0.7);
                     resolver(dataUrlComprimida);
                 };
@@ -136,64 +225,64 @@
         });
     }
 
+    // PROCESAMIENTO DEL FORMULARIO Y SUBIDA A FIRESTORE
     document.getElementById('formularioEncuesta').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnEnviar');
         const aviso = document.getElementById('cajaAlerta');
+        const plan = inputPlanHidden.value;
+
+        if (!plan) {
+            alert("Por favor, selecciona un Plan de Internet haciendo clic en uno de los recuadros.");
+            return;
+        }
 
         btn.disabled = true;
-        btn.innerText = "Procesando codificación y optimización de archivos...";
+        btn.innerText = "Comprimiendo foto de Cédula y enviando expediente...";
         aviso.style.display = "none";
 
         try {
             const fotoFrente = document.getElementById('fileFrente').files[0];
-            const fotoAtras = document.getElementById('fileAtras').files[0];
-            const fotoDomicilio = document.getElementById('fileDomicilio').files[0];
-            const fotoCupon = document.getElementById('fileCupon').files[0];
-
-            // Conversión paralela ultrarrápida a Base64 en el navegador del cliente
             const base64Frente = await procesarYConvertirABase64(fotoFrente);
-            const base64Atras = await procesarYConvertirABase64(fotoAtras);
-            const base64Domicilio = await procesarYConvertirABase64(fotoDomicilio);
-            const base64Cupon = fotoCupon ? await procesarYConvertirABase64(fotoCupon) : "No adjunto";
 
             const expedienteManga = {
                 nombres: document.getElementById('txtNombres').value.trim(),
                 apellidos: document.getElementById('txtApellidos').value.trim(),
                 cedula_rif: document.getElementById('txtCI').value.trim(),
                 email: document.getElementById('txtEmail').value.trim(),
-                direccion: document.getElementById('txtDireccion').value.trim(),
-                coordenadas: document.getElementById('txtCoordenadas').value.trim(),
-                localidad_barrio: document.getElementById('txtLocalidad').value.trim(),
+                direccion_referencia: document.getElementById('txtDireccion').value.trim(),
+                coordinates: document.getElementById('txtCoordenadas').value.trim(),
+                localidad_sector: document.getElementById('txtLocalidad').value.trim(),
                 ciudad_municipio: document.getElementById('txtCiudad').value.trim(),
                 codigo_postal: document.getElementById('txtPostal').value.trim(),
                 telefono: document.getElementById('txtTelefono').value.trim(),
                 telefono_adicional: document.getElementById('txtTelefonoAdicional').value.trim() || "No indicado",
+                plan_solicitado: plan,
+                promotor_assigned: document.getElementById('selPromotor').value,
                 comentarios: document.getElementById('txtComentarios').value.trim() || "Sin comentarios",
                 
-                // Las imágenes se guardan como texto nativo plano dentro de los campos
-                foto_frente_base64: base64Frente,
-                foto_atras_base64: base64Atras,
-                foto_domicilio_base64: base64Domicilio,
-                foto_cupon_base64: base64Cupon,
+                // Única foto requerida guardada nativamente como texto comprimido
+                foto_cedula_frente_base64: base64Frente,
                 
                 fecha_registro: new Date().toISOString(),
                 estado: "Pendiente Validacion"
             };
 
-            // Inserción en la colección Firestore
             await addDoc(collection(db, "encuestas"), expedienteManga);
 
             aviso.className = "alerta exito";
             aviso.innerHTML = "Gracias por su información estará siendo verificada por nuestros promotores";
             aviso.style.display = "block";
             
+            // Limpieza del formulario
             document.getElementById('formularioEncuesta').reset();
+            tarjetasPlanes.forEach(t => t.classList.remove('seleccionado'));
+            inputPlanHidden.value = "";
 
         } catch (error) {
             console.error(error);
             aviso.className = "alerta error";
-            aviso.innerHTML = "Ocurrió un error local en la conversión asíncrona. Revisa el tipo de archivo.";
+            aviso.innerHTML = "Error al compilar el expediente asíncrono. Verifique la consola de desarrollo.";
             aviso.style.display = "block";
         } finally {
             btn.disabled = false;
