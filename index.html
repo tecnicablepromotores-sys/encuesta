@@ -28,14 +28,12 @@
         input, select, textarea { background-color: var(--entradas); color: var(--texto); padding: 12px; border: 1px solid var(--bordes); border-radius: 6px; font-size: 15px; box-sizing: border-box; width: 100%; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--azul); }
         
-        /* Contenedor de Coordenadas y Mapas */
         .grupo-coordenadas { display: flex; gap: 8px; }
         .btn-gps { background-color: var(--verde); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; white-space: nowrap; transition: background 0.2s; }
         .btn-gps:hover { background-color: var(--verde-hover); }
         .btn-mapa { background-color: #4b5563; color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; white-space: nowrap; transition: background 0.2s; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .btn-mapa:hover { background-color: #374151; }
 
-        /* Cuadrícula de Planes de Internet y TV */
         .contenedor-planes { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 4px; }
         .plan-opcion { border: 2px solid var(--bordes); border-radius: 8px; padding: 16px; text-align: center; cursor: pointer; background-color: var(--entradas); transition: all 0.2s; }
         .plan-opcion:hover { border-color: #4b5563; }
@@ -76,13 +74,12 @@
         <div class="campo"><label>Dirección Corta *</label><input type="text" id="txtDireccion" required placeholder="Ej. Calle Principal, Casa Nro 5"></div>
         <div class="campo"><label>Punto de Referencia *</label><textarea id="txtReferencia" rows="2" required placeholder="Ej. Frente a la plaza, casa color azul con portón blanco"></textarea></div>
         
-        <!-- Coordenadas con Geolocalización e Integración con Maps -->
         <div class="campo">
             <label>Coordenadas de Ubicación (Latitud, Longitud) *</label>
             <div class="grupo-coordenadas">
                 <input type="text" id="txtCoordenadas" required placeholder="Ej. 10.9543, -64.0124">
                 <button type="button" class="btn-gps" id="btnCapturarGPS">📍 Mi Ubicación</button>
-                <a href="https://maps.google.com" target="_blank" class="btn-mapa" id="lnkGoogleMaps">🗺️ Buscar en Maps</a>
+                <a href="https://maps.google.com" target="_blank" class="btn-mapa">🗺️ Maps</a>
             </div>
         </div>
 
@@ -96,50 +93,26 @@
             <div class="campo"><label>Teléfono Celular Adicional</label><input type="tel" id="txtTelefonoAdicional" placeholder="Opcional"></div>
         </div>
 
-        <!-- RECUADRO DE SELECCIÓN DE PLANES DE INTERNET Y TV ACTUALIZADOS -->
         <div class="campo">
             <label>Plan de Internet / Servicio Solicitado *</label>
             <div class="contenedor-planes">
-                <div class="plan-opcion" data-plan="Plan Básico - 400 Mbps ($30)">
-                    <h4>Básico</h4>
-                    <p>$30 / mes</p>
-                    <span>400 Mbps</span>
-                </div>
-                <div class="plan-opcion" data-plan="Plan Hogar - 600 Mbps ($35)">
-                    <h4>Hogar</h4>
-                    <p>$35 / mes</p>
-                    <span>600 Mbps</span>
-                </div>
-                <div class="plan-opcion" data-plan="Plan Turbo - 800 Mbps ($40)">
-                    <h4>Turbo</h4>
-                    <p>$40 / mes</p>
-                    <span>800 Mbps</span>
-                </div>
-                <div class="plan-opcion" data-plan="Plan 1 Gbps ($45)">
-                    <h4>Premium</h4>
-                    <p>$45 / mes</p>
-                    <span>1 Gbps</span>
-                </div>
-                <div class="plan-opcion" data-plan="Plan Solo TV ($10)">
-                    <h4>Solo TV</h4>
-                    <p>$10 / mes</p>
-                    <span>Servicio de TV</span>
-                </div>
+                <div class="plan-opcion" data-plan="Plan Básico - 400 Mbps ($30)"><h4>Básico</h4><p>$30 / mes</p><span>400 Mbps</span></div>
+                <div class="plan-opcion" data-plan="Plan Hogar - 600 Mbps ($35)"><h4>Hogar</h4><p>$35 / mes</p><span>600 Mbps</span></div>
+                <div class="plan-opcion" data-plan="Plan Turbo - 800 Mbps ($40)"><h4>Turbo</h4><p>$40 / mes</p><span>800 Mbps</span></div>
+                <div class="plan-opcion" data-plan="Plan 1 Gbps ($45)"><h4>Premium</h4><p>$45 / mes</p><span>1 Gbps</span></div>
+                <div class="plan-opcion" data-plan="Plan Solo TV ($10)"><h4>Solo TV</h4><p>$10 / mes</p><span>Servicio de TV</span></div>
             </div>
             <input type="hidden" id="txtPlanSeleccionado" required>
         </div>
 
-        <!-- SECCIÓN DE ARCHIVOS: Única foto obligatoria -->
         <div class="campo"><label>Foto de la Cédula de Identidad (Frente) *</label><input type="file" id="fileFrente" class="input-archivo" accept="image/*" required></div>
 
-        <!-- LISTADO DESPLEGABLE DE PROMOTORES -->
         <div class="campo">
             <label>Promotor Responsable del Registro *</label>
             <select id="selPromotor" required>
-                <option value="" disabled selected>-- Selecciona el Promotor asignado --</option>
+                <option value="" disabled selected>-- Selecciona el Promotor --</option>
                 <option value="Promotor 1">Promotor 1</option>
                 <option value="Promotor 2">Promotor 2</option>
-                <option value="Promotor 3">Promotor 3</option>
                 <option value="Supervisor General">Supervisor General</option>
             </select>
         </div>
@@ -165,139 +138,66 @@
     const app = initializeApp(configuracionFirebase);
     const db = getFirestore(app);
 
-    // LÓGICA DE CAPTURA DE COORDENADAS (NATIVA GPS)
     document.getElementById('btnCapturarGPS').addEventListener('click', () => {
         const txtCoord = document.getElementById('txtCoordenadas');
         if (navigator.geolocation) {
             txtCoord.value = "Obteniendo posición...";
             navigator.geolocation.getCurrentPosition(
-                (posicion) => {
-                    const lat = posicion.coords.latitude.toFixed(6);
-                    const lon = posicion.coords.longitude.toFixed(6);
-                    txtCoord.value = `${lat}, ${lon}`;
-                },
-                (error) => {
-                    alert("No se pudo obtener el GPS automáticamente. Usa el botón 'Buscar en Maps' para copiar las coordenadas manual.");
-                    txtCoord.value = "";
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
+                (pos) => txtCoord.value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`,
+                () => { alert("Error al obtener ubicación."); txtCoord.value = ""; },
+                { enableHighAccuracy: true }
             );
-        } else {
-            alert("Tu navegador no soporta geolocalización.");
         }
     });
 
-    // LÓGICA DE SELECCIÓN DE PLANES EN RECUADROS
     const tarjetasPlanes = document.querySelectorAll('.plan-opcion');
     const inputPlanHidden = document.getElementById('txtPlanSeleccionado');
+    tarjetasPlanes.forEach(t => t.addEventListener('click', () => {
+        tarjetasPlanes.forEach(x => x.classList.remove('seleccionado'));
+        t.classList.add('seleccionado');
+        inputPlanHidden.value = t.getAttribute('data-plan');
+    }));
 
-    tarjetasPlanes.forEach(tarjeta => {
-        tarjeta.addEventListener('click', () => {
-            tarjetasPlanes.forEach(t => t.classList.remove('seleccionado'));
-            tarjeta.classList.add('seleccionado');
-            inputPlanHidden.value = tarjeta.getAttribute('data-plan');
-        });
-    });
-
-    // COMPRESOR Y CONVERTIDOR ASÍNCRONO A BASE64
-    function procesarYConvertirABase64(archivo) {
-        return new Promise((resolver, rechazar) => {
-            if (!archivo) return resolver("No adjunto");
-
-            const lector = new FileReader();
-            lector.readAsDataURL(archivo);
-            lector.onload = (evento) => {
-                const img = new Image();
-                img.src = evento.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement("canvas");
-                    const ctx = canvas.getContext("2d");
-
-                    const MAX_ANCHO = 800;
-                    const MAX_ALTO = 600;
-                    let ancho = img.width;
-                    let alto = img.height;
-
-                    if (ancho > alto) {
-                        if (ancho > MAX_ANCHO) { alto *= MAX_ANCHO / ancho; ancho = MAX_ANCHO; }
-                    } else {
-                        if (alto > MAX_ALTO) { ancho *= MAX_ALTO / alto; alto = MAX_ALTO; }
-                    }
-
-                    canvas.width = ancho;
-                    canvas.height = alto;
-                    ctx.drawImage(img, 0, 0, ancho, alto);
-
-                    const dataUrlComprimida = canvas.toDataURL("image/jpeg", 0.7);
-                    resolver(dataUrlComprimida);
-                };
-            };
-            lector.onerror = (error) => rechazar(error);
-        });
-    }
-
-    // PROCESAMIENTO DEL FORMULARIO Y SUBIDA A FIRESTORE
     document.getElementById('formularioEncuesta').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnEnviar');
         const aviso = document.getElementById('cajaAlerta');
-        const plan = inputPlanHidden.value;
-
-        if (!plan) {
-            alert("Por favor, selecciona un Plan de Internet o TV haciendo clic en uno de los recuadros.");
-            return;
-        }
-
+        const foto = document.getElementById('fileFrente').files[0];
+        
+        if (!inputPlanHidden.value) return alert("Selecciona un plan.");
         btn.disabled = true;
-        btn.innerText = "Comprimiendo foto de Cédula y enviando expediente...";
-        aviso.style.display = "none";
+        btn.innerText = "Enviando...";
 
-        try {
-            const fotoFrente = document.getElementById('fileFrente').files[0];
-            const base64Frente = await procesarYConvertirABase64(fotoFrente);
-
-            const expedienteManga = {
-                nombres: document.getElementById('txtNombres').value.trim(),
-                apellidos: document.getElementById('txtApellidos').value.trim(),
-                cedula_rif: document.getElementById('txtCI').value.trim(),
-                email: document.getElementById('txtEmail').value.trim(),
-                direccion_corta: document.getElementById('txtDireccion').value.trim(),
-                punto_referencia: document.getElementById('txtReferencia').value.trim(),
-                coordinates: document.getElementById('txtCoordenadas').value.trim(),
-                localidad_sector: document.getElementById('txtLocalidad').value.trim(),
-                ciudad_municipio: document.getElementById('txtCiudad').value.trim(),
-                telefono_celular: document.getElementById('txtTelefono').value.trim(),
-                telefono_adicional: document.getElementById('txtTelefonoAdicional').value.trim() || "No indicado",
-                plan_solicitado: plan,
-                promotor_assigned: document.getElementById('selPromotor').value,
-                
-                // Única foto requerida guardada nativamente como texto comprimido
-                foto_cedula_frente_base64: base64Frente,
-                
-                fecha_registro: new Date().toISOString(),
-                estado: "Pendiente Validacion"
-            };
-
-            await addDoc(collection(db, "encuestas"), expedienteManga);
-
-            aviso.className = "alerta exito";
-            aviso.innerHTML = "Gracias por su información estará siendo verificada por nuestros promotores";
-            aviso.style.display = "block";
-            
-            // Limpieza del formulario
-            document.getElementById('formularioEncuesta').reset();
-            tarjetasPlanes.forEach(t => t.classList.remove('seleccionado'));
-            inputPlanHidden.value = "";
-
-        } catch (error) {
-            console.error(error);
-            aviso.className = "alerta error";
-            aviso.innerHTML = "Error al compilar el expediente asíncrono. Verifique la consola de desarrollo.";
-            aviso.style.display = "block";
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "Enviar Información";
-        }
+        const lector = new FileReader();
+        lector.readAsDataURL(foto);
+        lector.onload = async () => {
+            try {
+                await addDoc(collection(db, "encuestas"), {
+                    nombres: document.getElementById('txtNombres').value,
+                    apellidos: document.getElementById('txtApellidos').value,
+                    cedula: document.getElementById('txtCI').value,
+                    email: document.getElementById('txtEmail').value,
+                    direccion: document.getElementById('txtDireccion').value,
+                    referencia: document.getElementById('txtReferencia').value,
+                    coordenadas: document.getElementById('txtCoordenadas').value,
+                    localidad: document.getElementById('txtLocalidad').value,
+                    ciudad: document.getElementById('txtCiudad').value,
+                    telefono: document.getElementById('txtTelefono').value,
+                    telefono_adicional: document.getElementById('txtTelefonoAdicional').value,
+                    plan: inputPlanHidden.value,
+                    promotor: document.getElementById('selPromotor').value,
+                    foto: lector.result,
+                    fecha: new Date().toISOString()
+                });
+                aviso.className = "alerta exito";
+                aviso.innerHTML = "Registro enviado con éxito.";
+                aviso.style.display = "block";
+            } catch (err) {
+                aviso.className = "alerta error";
+                aviso.innerHTML = "Error al enviar.";
+                aviso.style.display = "block";
+            } finally { btn.disabled = false; btn.innerText = "Enviar Información"; }
+        };
     });
 </script>
 </body>
