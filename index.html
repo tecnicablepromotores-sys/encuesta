@@ -1,28 +1,215 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Censo de Suscriptores | Plataforma Administrativa</title>
+    <style>
+        /* Estilos modernos y profesionales para la interfaz */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .contenedor-formulario {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 5px;
+        }
+        p.subtitulo {
+            text-align: center;
+            color: #5f6368;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .grupo-input {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+        }
+        button {
+            width: 100%;
+            background-color: #1a73e8;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        .mensaje-exito {
+            display: none;
+            background-color: #e6f4ea;
+            color: #137333;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .mensaje-error {
+            display: none;
+            background-color: #fce8e6;
+            color: #c5221f;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
 <body>
-    <button id="btnTest">PRUEBA DE CONEXIÓN</button>
-    <div id="resultado">Esperando...</div>
+
+    <div class="contenedor-formulario">
+        <h2>Registro de Suscriptores</h2>
+        <p class="subtitulo">Complete los datos para el censo de la red</p>
+
+        <div id="alertaExito" class="mensaje-exito">¡Datos registrados exitosamente en el sistema!</div>
+        <div id="alertaError" class="mensaje-error">Error al conectar con la base de datos. Verifique la consola.</div>
+
+        <form id="encuestaForm">
+            <div class="grupo-input">
+                <label for="nombres">Nombre Completo del Titular</label>
+                <input type="text" id="nombres" placeholder="Ej. Juan Pérez" required>
+            </div>
+
+            <div class="grupo-input">
+                <label for="cedula">Cédula de Identidad</label>
+                <input type="text" id="cedula" placeholder="Ej. V-12345678" required>
+            </div>
+
+            <div class="grupo-input">
+                <label for="telefono">Número de Teléfono</label>
+                <input type="tel" id="telefono" placeholder="Ej. 0414-1234567" required>
+            </div>
+
+            <div class="grupo-input">
+                <label for="sector">Sector / Dirección Exacta</label>
+                <input type="text" id="sector" placeholder="Municipio, Sector, Calle..." required>
+            </div>
+
+            <div class="grupo-input">
+                <label for="plan">Plan de Servicio Asignado</label>
+                <select id="plan" required>
+                    <option value="" disabled selected>Seleccione un plan de navegación...</option>
+                    <option value="Basico">Plan Básico</option>
+                    <option value="Hogar">Plan Hogar</option>
+                    <option value="Turbo">Plan Turbo</option>
+                    <option value="VIP">Plan VIP</option>
+                    <option value="Solo TV">Solo TV</option>
+                </select>
+            </div>
+
+            <button type="submit" id="btnEnviar">Registrar en Base de Datos</button>
+        </form>
+    </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        // 1. IMPORTACIONES DESDE CDN (Obligatorio para GitHub Pages)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
 
-        const config = {
-            apiKey: "AIzaSyDexdrdOZhub0YL9Kx8GtD555BF-nejOZI",
+        // 2. TU CONFIGURACIÓN EXACTA (Con la NUEVA Key y tus IDs reales)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAbnLpJIPOxhf1Fe4DUWZkpGJ7Y871o52Y", // Tu nueva API Key
+            authDomain: "formulario-9b119.firebaseapp.com",
             projectId: "formulario-9b119",
             storageBucket: "formulario-9b119.firebasestorage.app",
-            appId: "1:648279847643:web:802107ded1f0f5957f52fe"
+            messagingSenderId: "648279847643",
+            appId: "1:648279847643:web:802107ded1f0f5957f52fe",
+            measurementId: "G-VSFYQB6FQ9"
         };
 
-        const db = getFirestore(initializeApp(config));
+        // 3. INICIALIZAR LOS SERVICIOS DE GOOGLE
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app); // Inicializamos la Base de Datos
 
-        document.getElementById('btnTest').addEventListener('click', async () => {
+        // 4. LÓGICA DEL FORMULARIO
+        const formulario = document.getElementById('encuestaForm');
+        const btnEnviar = document.getElementById('btnEnviar');
+        const alertaExito = document.getElementById('alertaExito');
+        const alertaError = document.getElementById('alertaError');
+
+        formulario.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evita que la página se recargue bruscamente
+            
+            // Cambiamos el texto del botón mientras procesa
+            btnEnviar.textContent = "Registrando datos...";
+            btnEnviar.disabled = true;
+
+            // Recopilamos los datos ingresados
+            const datosSuscriptor = {
+                nombres: document.getElementById('nombres').value,
+                cedula: document.getElementById('cedula').value,
+                telefono: document.getElementById('telefono').value,
+                sector: document.getElementById('sector').value,
+                plan_asignado: document.getElementById('plan').value,
+                fecha_registro: new Date() // Guarda la fecha y hora exacta
+            };
+
             try {
-                await addDoc(collection(db, "test"), { fecha: new Date() });
-                document.getElementById('resultado').innerText = "✅ ¡CONEXIÓN EXITOSA! Firebase responde.";
-            } catch (e) {
-                document.getElementById('resultado').innerText = "❌ ERROR: " + e.message;
+                // 5. ENVIAR A FIRESTORE
+                // Guarda en una colección principal llamada "Censo_Suscriptores"
+                await addDoc(collection(db, "Censo_Suscriptores"), datosSuscriptor);
+                
+                // Mostrar éxito y limpiar formulario
+                alertaExito.style.display = 'block';
+                alertaError.style.display = 'none';
+                formulario.reset();
+
+                // Ocultar la alerta verde después de 4 segundos
+                setTimeout(() => {
+                    alertaExito.style.display = 'none';
+                }, 4000);
+
+            } catch (error) {
+                console.error("Error crítico de Firebase:", error);
+                alertaError.style.display = 'block';
+                alertaExito.style.display = 'none';
+            } finally {
+                // Restaurar el botón
+                btnEnviar.textContent = "Registrar en Base de Datos";
+                btnEnviar.disabled = false;
             }
         });
     </script>
