@@ -6,65 +6,31 @@
     <title>Solicitud de Conexión a Internet</title>
     <style>
         :root {
-            --bg-body: #121212;
-            --bg-card: #1e1e1e;
-            --border-color: #333333;
-            --text-main: #ffffff;
-            --text-muted: #9ca3af;
-            --accent-blue: #2563eb;
-            --accent-green: #10b981;
+            --bg-body: #121212; --bg-card: #1e1e1e; --border-color: #333333;
+            --text-main: #ffffff; --text-muted: #9ca3af; --accent-blue: #2563eb; --accent-green: #10b981;
         }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .form-container {
-            background-color: var(--bg-card);
-            padding: 30px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 600px;
-            border: 1px solid var(--border-color);
-        }
-
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-body); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .form-container { background-color: var(--bg-card); padding: 30px; border-radius: 12px; width: 100%; max-width: 600px; border: 1px solid var(--border-color); }
         .header { text-align: center; margin-bottom: 25px; }
         .header h2 { margin: 0; font-size: 20px; }
         .header p { color: var(--text-muted); font-size: 13px; margin: 5px 0 0 0; }
-
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
         label { font-size: 13px; margin-bottom: 6px; font-weight: 500; }
-        input, select {
-            background: #121212; border: 1px solid var(--border-color);
-            color: white; padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box;
-        }
-
+        input, select { background: #121212; border: 1px solid var(--border-color); color: white; padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; }
         .coord-group { display: grid; grid-template-columns: 1fr auto auto; gap: 5px; }
         .btn { padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; color: white; }
         .btn-green { background: var(--accent-green); }
         .btn-gray { background: #4b5563; }
-
         .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-top: 10px; }
-        .plan-card {
-            background: #121212; border: 1px solid var(--border-color);
-            padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s;
-        }
+        .plan-card { background: #121212; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; }
         .plan-card input { display: none; }
         .plan-card:has(input:checked) { border: 2px solid var(--accent-blue); background: rgba(37, 99, 235, 0.1); }
         .plan-title { font-weight: bold; display: block; font-size: 13px; }
         .plan-price { color: var(--accent-green); font-size: 11px; display: block; margin: 3px 0; }
         .plan-desc { color: var(--text-muted); font-size: 9px; display: block; }
-
         .submit-btn { width: 100%; padding: 15px; background: var(--accent-blue); border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 16px; }
         .submit-btn:hover { background: #1d4ed8; }
-        
         @media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -93,7 +59,7 @@
             <div class="coord-group">
                 <input type="text" id="coordenadas" readonly placeholder="Ej. 10.9543, -64.0124">
                 <button type="button" class="btn btn-green" onclick="getLoc()">Mi Ubicación</button>
-                <button type="button" class="btn btn-gray" onclick="window.open('https://www.google.com/maps')">Maps</button>
+                <button type="button" class="btn btn-gray" onclick="window.open('http://maps.google.com')">Maps</button>
             </div>
         </div>
 
@@ -115,7 +81,7 @@
             <label class="plan-card"><input type="radio" name="plan" value="Solo TV"><span class="plan-title">Solo TV</span><span class="plan-price">$10/mes</span><span class="plan-desc">Servicio TV</span></label>
         </div>
 
-        <div class="form-group" style="margin-top:15px"><label>Foto de la Cédula (Frente) *</label><input type="file" required></div>
+        <div class="form-group" style="margin-top:15px"><label>Foto de la Cédula (Frente) *</label><input type="file" id="fileInput" accept="image/*" required></div>
         <div class="form-group"><label>Promotor Responsable *</label><select id="promotor" required><option value="">- Selecciona el Promotor -</option><option value="Oficina">Oficina Principal</option></select></div>
         
         <button type="submit" class="submit-btn" id="sendBtn">Enviar Información</button>
@@ -142,36 +108,59 @@
             navigator.geolocation.getCurrentPosition(p => {
                 document.getElementById('coordenadas').value = `${p.coords.latitude}, ${p.coords.longitude}`;
             });
-        } else {
-            alert("Geolocalización no disponible.");
-        }
+        } else { alert("Geolocalización no disponible."); }
+    };
+
+    // Función para procesar la imagen a Base64 con redimensionamiento
+    const getBase64Image = (file) => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const scale = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scale;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+            };
+        });
     };
 
     document.getElementById('registroForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('sendBtn');
+        const file = document.getElementById('fileInput').files[0];
         btn.innerText = "Enviando...";
         btn.disabled = true;
         
-        const data = {
-            nombres: document.getElementById('nombres').value,
-            apellidos: document.getElementById('apellidos').value,
-            cedula: document.getElementById('cedula').value,
-            correo: document.getElementById('correo').value,
-            direccion: document.getElementById('direccion').value,
-            referencia: document.getElementById('referencia').value,
-            coordenadas: document.getElementById('coordenadas').value,
-            sector: document.getElementById('sector').value,
-            ciudad: document.getElementById('ciudad').value,
-            telefono1: document.getElementById('telefono1').value,
-            telefono2: document.getElementById('telefono2').value,
-            plan: document.querySelector('input[name="plan"]:checked').value,
-            promotor: document.getElementById('promotor').value,
-            fecha_registro: serverTimestamp()
-        };
-
         try {
-            // CORRECCIÓN CRÍTICA: Apuntando a "Contratos_Web" para que la APK lo detecte
+            const base64Image = await getBase64Image(file);
+            
+            const data = {
+                nombres: document.getElementById('nombres').value,
+                apellidos: document.getElementById('apellidos').value,
+                cedula: document.getElementById('cedula').value,
+                correo: document.getElementById('correo').value,
+                direccion: document.getElementById('direccion').value,
+                referencia: document.getElementById('referencia').value,
+                coordenadas: document.getElementById('coordenadas').value,
+                sector: document.getElementById('sector').value,
+                ciudad: document.getElementById('ciudad').value,
+                telefono1: document.getElementById('telefono1').value,
+                telefono2: document.getElementById('telefono2').value,
+                plan: document.querySelector('input[name="plan"]:checked').value,
+                promotor: document.getElementById('promotor').value,
+                foto_binaria: base64Image, // Imagen convertida
+                fecha_registro: serverTimestamp()
+            };
+
             await addDoc(collection(db, "Contratos_Web"), data);
             alert("¡Contrato registrado con éxito!");
             location.reload();
