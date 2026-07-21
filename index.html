@@ -57,9 +57,10 @@
         <div class="form-group">
             <label>Coordenadas de Ubicación *</label>
             <div class="coord-group">
-                <input type="text" id="coordenadas" readonly placeholder="Ej. 10.9543, -64.0124">
+                <!-- Se eliminó el atributo "readonly" y se agregó "required" para permitir la escritura manual -->
+                <input type="text" id="coordenadas" placeholder="Ej. 10.9543, -64.0124" required>
                 <button type="button" class="btn btn-green" onclick="getLoc()">Mi Ubicación</button>
-                <button type="button" class="btn btn-gray" onclick="window.open('http://maps.google.com')">Maps</button>
+                <button type="button" class="btn btn-gray" onclick="window.open('https://maps.google.com')">Maps</button>
             </div>
         </div>
 
@@ -82,7 +83,28 @@
         </div>
 
         <div class="form-group" style="margin-top:15px"><label>Foto de la Cédula (Frente) *</label><input type="file" id="fileInput" accept="image/*" required></div>
-        <div class="form-group"><label>Promotor Responsable *</label><select id="promotor" required><option value="">- Selecciona el Promotor -</option><option value="Oficina">Oficina Principal</option></select></div>
+        
+        <div class="form-group">
+            <label>Promotor Responsable *</label>
+            <select id="promotor" required>
+                <option value="">- Selecciona el Promotor -</option>
+                <option value="Oficina Principal">Oficina Principal</option>
+                <option value="JESUS AVILA">JESUS AVILA</option>
+                <option value="ANGEL JIMENEZ">ANGEL JIMENEZ</option>
+                <option value="JUAN BRITO">JUAN BRITO</option>
+                <option value="GRACCO REATTEGUI">GRACCO REATTEGUI</option>
+                <option value="CAMILA MATTEUCCI">CAMILA MATTEUCCI</option>
+                <option value="DAYANA MILLAN">DAYANA MILLAN</option>
+                <option value="ROSA MUJICA">ROSA MUJICA</option>
+                <option value="ROSIMAR FUENTES">ROSIMAR FUENTES</option>
+                <option value="IVAN PEREZ">IVAN PEREZ</option>
+                <option value="LUISANA MATA">LUISANA MATA</option>
+                <option value="RAXON AGUILERA">RAXON AGUILERA</option>
+                <option value="JEIMAR FERMENAL">JEIMAR FERMENAL</option>
+                <option value="FERNANDO PINTO">FERNANDO PINTO</option>
+                <option value="GENESIS MARIN">GENESIS MARIN</option>
+            </select>
+        </div>
         
         <button type="submit" class="submit-btn" id="sendBtn">Enviar Información</button>
     </form>
@@ -107,11 +129,14 @@
         if(navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(p => {
                 document.getElementById('coordenadas').value = `${p.coords.latitude}, ${p.coords.longitude}`;
+            }, error => {
+                alert("No se pudo obtener la ubicación. Por favor ingresa las coordenadas manualmente.");
             });
-        } else { alert("Geolocalización no disponible."); }
+        } else { 
+            alert("Geolocalización no disponible en este navegador."); 
+        }
     };
 
-    // Función para procesar la imagen a Base64 con redimensionamiento
     const getBase64Image = (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -137,6 +162,14 @@
         e.preventDefault();
         const btn = document.getElementById('sendBtn');
         const file = document.getElementById('fileInput').files[0];
+        
+        // Variante de validación: Asegurarnos de que las coordenadas tienen algo escrito antes de enviar
+        const coordenadasVal = document.getElementById('coordenadas').value.trim();
+        if(!coordenadasVal) {
+            alert("Por favor, ingresa las coordenadas o usa el botón de Mi Ubicación.");
+            return;
+        }
+
         btn.innerText = "Enviando...";
         btn.disabled = true;
         
@@ -150,20 +183,22 @@
                 correo: document.getElementById('correo').value,
                 direccion: document.getElementById('direccion').value,
                 referencia: document.getElementById('referencia').value,
-                coordenadas: document.getElementById('coordenadas').value,
+                coordenadas: coordenadasVal,
                 sector: document.getElementById('sector').value,
                 ciudad: document.getElementById('ciudad').value,
                 telefono1: document.getElementById('telefono1').value,
                 telefono2: document.getElementById('telefono2').value,
                 plan: document.querySelector('input[name="plan"]:checked').value,
                 promotor: document.getElementById('promotor').value,
-                foto_binaria: base64Image, // Imagen convertida
+                foto_binaria: base64Image,
                 fecha_registro: serverTimestamp()
             };
 
             await addDoc(collection(db, "Contratos_Web"), data);
             alert("¡Contrato registrado con éxito!");
-            location.reload();
+            document.getElementById('registroForm').reset(); // Limpia el formulario después de enviar
+            btn.disabled = false;
+            btn.innerText = "Enviar Información";
         } catch (error) {
             console.error(error);
             alert("Error al enviar, intenta de nuevo.");
