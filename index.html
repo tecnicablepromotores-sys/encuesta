@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Conexión a Internet · Tecnicable</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #0b0b0e;
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .form-wrapper {
+            width: 100%;
+            max-width: 720px;
+            background: rgba(20, 20, 25, 0.85);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 2rem;
+            padding: 2rem 2rem 2.5rem;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+            transition: all 0.25s ease;
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .form-header .logo-icon {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            padding: 12px 16px;
+            border-radius: 1.5rem;
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .form-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: white;
+        }
+        .form-header h2 span { color: #60a5fa; }
+        .form-header p {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #9ca3af;
+            margin-bottom: 0.3rem;
+        }
+        .input-dark {
+            width: 100%;
+            background: #121216;
+            border: 1px solid #2a2a32;
+            border-radius: 0.75rem;
+            padding: 0.7rem 1rem;
+            color: #e5e7eb;
+            font-size: 0.85rem;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+        .input-dark::placeholder { color: #4b4b55; }
+        select.input-dark { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+
+        .coord-group {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 0.5rem;
+        }
+        .coord-group .input-dark { flex: 1; }
+        .btn-icon {
+            background: transparent;
+            border: 1px solid #2a2a32;
+            border-radius: 0.75rem;
+            padding: 0.7rem 1rem;
+            color: #d1d5db;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-icon:hover { background: #2a2a30; }
+        .btn-icon:active { transform: scale(0.96); }
+        .btn-green { border-color: #10b981; color: #34d399; }
+        .btn-green:hover { background: #10b98120; }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 0.7rem;
+            margin-top: 0.3rem;
+        }
+        .plan-card {
+            background: #121216;
+            border: 1px solid #2a2a32;
+            border-radius: 1rem;
+            padding: 0.8rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border 0.2s, background 0.2s, transform 0.1s;
+        }
+        .plan-card:hover { background: #1a1a20; }
+        .plan-card input { display: none; }
+        .plan-card:has(input:checked) {
+            border-color: #3b82f6;
+            background: rgba(37, 99, 235, 0.08);
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .plan-title { font-weight: 600; font-size: 0.9rem; display: block; }
+        .plan-price { color: #34d399; font-size: 0.75rem; display: block; margin: 0.2rem 0; }
+        .plan-desc { color: #6b7280; font-size: 0.6rem; display: block; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border: none;
+            border-radius: 1rem;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.3); }
+        .submit-btn:active { transform: scale(0.97); }
+        .submit-btn:disabled { opacity: 0.6; pointer-events: none; }
+
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 380px;
+            width: 100%;
+        }
+        .toast {
+            animation: toastIn 0.4s ease forwards;
+            padding: 0.9rem 1.2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .toast-success { background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.2); }
+        .toast-error   { background: rgba(239,68,68,0.2); color: #fca5a5; border-color: rgba(239,68,68,0.2); }
+        .toast-warning { background: rgba(245,158,11,0.2); color: #fcd34d; border-color: rgba(245,158,11,0.2); }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .toast-out { opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
+
+        @media (max-width: 640px) {
+            .form-wrapper { padding: 1.5rem; border-radius: 1.5rem; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .coord-group { grid-template-columns: 1fr; }
+            .plans-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 400px) {
+            .plans-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-wrapper">
+        <div class="form-header">
+            <div class="logo-icon"><i class="fa-solid fa-wifi"></i></div>
+            <h2>TECNICABLE <span>CONEXIÓN</span></h2>
+            <p>Solicitud de servicio de Internet y TV</p>
+        </div>
+
+        <form id="registroForm" novalidate>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label><i class="fa-regular fa-user"></i> Nombre(s) *</label>
+                    <input type="text" id="nombres" class="input-dark" placeholder="Ej. María" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-regular fa-user"></i> Apellidos *</label>
+                    <input type="text" id="apellidos" class="input-dark" placeholder="Ej. Pérez" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label><i class="fa-regular fa-id-card"></i> Cédula (CI) *</label>
+                    <input type="text" id="cedula" class="input-dark" placeholder="Ej. 12345678" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-regular fa-envelope"></i> Correo electrónico *</label>
+                    <input type="email" id="correo" class="input-dark" placeholder="cliente@correo.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label><i class="fa-regular fa-location-dot"></i> Dirección corta *</label>
+                <input type="text" id="direccion" class="input-dark" placeholder="Calle principal, casa #12" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fa-regular fa-map-pin"></i> Punto de referencia *</label>
+                <input type="text" id="referencia" class="input-dark" placeholder="Cerca de la plaza, frente a la iglesia" required>
+            </div>
+            <div class="form-group">
+                <label><i class="fa-regular fa-globe"></i> Coordenadas *</label>
+                <div class="coord-group">
+                    <input type="text" id="coordenadas" class="input-dark" placeholder="Ej. 10.9543, -64.0124" required>
+                    <button type="button" class="btn-icon btn-green" onclick="getLoc()"><i class="fa-solid fa-location-crosshairs"></i> Ubicarme</button>
+                    <button type="button" class="btn-icon" onclick="window.open('https://maps.google.com')"><i class="fa-brands fa-google"></i> Maps</button>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label><i class="fa-regular fa-house"></i> Barrio / Sector *</label>
+                    <input type="text" id="sector" class="input-dark" placeholder="Ej. Los Cerros" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-regular fa-city"></i> Ciudad / Municipio *</label>
+                    <input type="text" id="ciudad" class="input-dark" placeholder="Ej. Caracas" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label><i class="fa-regular fa-phone"></i> Teléfono celular *</label>
+                    <input type="tel" id="telefono1" class="input-dark" placeholder="0412-1234567" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-regular fa-phone"></i> Teléfono adicional</label>
+                    <input type="tel" id="telefono2" class="input-dark" placeholder="0424-7654321">
+                </div>
+            </div>
+
+            <label style="display: block; margin: 0.5rem 0 0.3rem;"><i class="fa-regular fa-signal"></i> Plan de Internet *</label>
+            <div class="plans-grid">
+                <label class="plan-card"><input type="radio" name="plan" value="Basico" required><span class="plan-title">Básico</span><span class="plan-price">$30</span><span class="plan-desc">400 Mbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="Hogar"><span class="plan-title">Hogar</span><span class="plan-price">$35</span><span class="plan-desc">600 Mbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="Turbo"><span class="plan-title">Turbo</span><span class="plan-price">$40</span><span class="plan-desc">800 Mbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="VIP"><span class="plan-title">VIP</span><span class="plan-price">$45</span><span class="plan-desc">1 Gbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="Solo TV"><span class="plan-title">Solo TV</span><span class="plan-price">$10</span><span class="plan-desc">TV</span></label>
+            </div>
+
+            <div class="form-group" style="margin-top: 1.2rem;">
+                <label><i class="fa-regular fa-image"></i> Foto de la Cédula (frente) *</label>
+                <input type="file" id="fileInput" class="input-dark" accept="image/*" required>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fa-regular fa-id-badge"></i> Promotor responsable *</label>
+                <select id="promotor" class="input-dark" required>
+                    <option value="">Cargando promotores...</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn" id="sendBtn">
+                <i class="fa-regular fa-paper-plane"></i> Enviar Solicitud
+            </button>
+        </form>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAXWVUw7b1B0IICyAU_wlYjYxdkYxMTm_E",
+            authDomain: "tecnicable-e00d3.firebaseapp.com",
+            projectId: "tecnicable-e00d3",
+            storageBucket: "tecnicable-e00d3.firebasestorage.app",
+            messagingSenderId: "830462237822",
+            appId: "1:830462237822:web:9bf4b9c827ebee057c8c2f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- DOM refs ---
+        const form = document.getElementById('registroForm');
+        const btn = document.getElementById('sendBtn');
+        const promotorSelect = document.getElementById('promotor');
+        const toastContainer = document.getElementById('toast-container');
+
+        // --- Toast ---
+        function mostrarToast(mensaje, tipo = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${tipo}`;
+            const iconMap = {
+                success: 'fa-circle-check',
+                error: 'fa-circle-exclamation',
+                warning: 'fa-triangle-exclamation'
+            };
+            toast.innerHTML = `<i class="fa-solid ${iconMap[tipo] || iconMap.success}"></i><span>${mensaje}</span>`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 350);
+            }, 4000);
+        }
+
+        // --- Geolocalización ---
+        window.getLoc = () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    p => {
+                        document.getElementById('coordenadas').value = `${p.coords.latitude}, ${p.coords.longitude}`;
+                        mostrarToast('Ubicación obtenida correctamente', 'success');
+                    },
+                    () => {
+                        mostrarToast('No se pudo obtener la ubicación. Ingresa manualmente.', 'warning');
+                    }
+                );
+            } else {
+                mostrarToast('Geolocalización no disponible.', 'error');
+            }
+        };
+
+        // --- Sincronización en tiempo real de promotores ---
+        onSnapshot(collection(db, "usuarios"), (snapshot) => {
+            const options = [{ value: '', text: '-- Selecciona un promotor --' }];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.nombre) {
+                    options.push({ value: data.nombre, text: `${data.nombre} ${data.cedula ? '· ' + data.cedula : ''}` });
+                }
+            });
+            // Si no hay promotores, añadir opción por defecto
+            if (options.length === 1) {
+                options.push({ value: 'Oficina Principal', text: 'Oficina Principal' });
+            }
+            promotorSelect.innerHTML = options.map(opt =>
+                `<option value="${opt.value}">${opt.text}</option>`
+            ).join('');
+        }, (error) => {
+            console.error('Error en suscripción de promotores:', error);
+            // Fallback: lista estática
+            const fallback = [
+                'Oficina Principal', 'JESUS AVILA', 'ANGEL JIMENEZ', 'JUAN BRITO',
+                'GRACCO REATTEGUI', 'CAMILA MATTEUCCI', 'DAVID STEWART', 'DAYANA MILLAN',
+                'ROSA MUJICA', 'ROSIMAR FUENTES', 'IVAN PEREZ', 'LUISANA MATA',
+                'RAXON AGUILERA', 'JEIMAR FERMENAL', 'FERNANDO PINTO', 'GENESIS MARIN'
+            ];
+            promotorSelect.innerHTML = '<option value="">-- Selecciona un promotor --</option>' +
+                fallback.map(p => `<option value="${p}">${p}</option>`).join('');
+        });
+
+        // --- Compresión adaptativa de imagen (se queda dentro de Firestore, sin Storage) ---
+        // Reduce dimensiones/calidad hasta que el string Base64 quede muy por debajo
+        // del límite de 1MB por documento de Firestore (se deja margen para el resto de campos).
+        const LIMITE_BASE64_BYTES = 650 * 1024; // ~650KB de margen seguro
+
+        function comprimirImagen(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('No se pudo leer el archivo de imagen.'));
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('El archivo seleccionado no es una imagen válida.'));
+                    img.onload = () => {
+                        const MAX = 800;
+                        // No ampliar imágenes que ya son más pequeñas que MAX
+                        const scale = Math.min(1, MAX / img.width);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        // Reduce calidad progresivamente hasta caber en el límite seguro
+                        let calidad = 0.7;
+                        let resultado = canvas.toDataURL('image/jpeg', calidad);
+                        while (resultado.length > LIMITE_BASE64_BYTES && calidad > 0.3) {
+                            calidad -= 0.1;
+                            resultado = canvas.toDataURL('image/jpeg', calidad);
+                        }
+
+                        // Si aun así excede el límite, reduce también las dimensiones
+                        let anchoActual = canvas.width;
+                        while (resultado.length > LIMITE_BASE64_BYTES && anchoActual > 300) {
+                            anchoActual = Math.round(anchoActual * 0.85);
+                            const altoActual = Math.round(anchoActual * (canvas.height / canvas.width));
+                            const canvas2 = document.createElement('canvas');
+                            canvas2.width = anchoActual;
+                            canvas2.height = altoActual;
+                            canvas2.getContext('2d').drawImage(canvas, 0, 0, anchoActual, altoActual);
+                            resultado = canvas2.toDataURL('image/jpeg', calidad);
+                        }
+
+                        resolve(resultado);
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // --- Envío del formulario ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) {
+                mostrarToast('Por favor selecciona una foto de la cédula.', 'warning');
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                mostrarToast('El archivo debe ser una imagen (jpg, png, etc.).', 'warning');
+                return;
+            }
+
+            const coordVal = document.getElementById('coordenadas').value.trim();
+            if (!coordVal) {
+                mostrarToast('Por favor ingresa las coordenadas o usa el botón de ubicación.', 'warning');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+            try {
+                const base64 = await comprimirImagen(file);
+
+                const data = {
+                    nombres: document.getElementById('nombres').value,
+                    apellidos: document.getElementById('apellidos').value,
+                    cedula: document.getElementById('cedula').value,
+                    correo: document.getElementById('correo').value,
+                    direccion: document.getElementById('direccion').value,
+                    referencia: document.getElementById('referencia').value,
+                    coordenadas: coordVal,
+                    sector: document.getElementById('sector').value,
+                    ciudad: document.getElementById('ciudad').value,
+                    telefono1: document.getElementById('telefono1').value,
+                    telefono2: document.getElementById('telefono2').value,
+                    plan: document.querySelector('input[name="plan"]:checked')?.value || '',
+                    promotor: promotorSelect.value,
+                    foto_binaria: base64,
+                    fecha_registro: serverTimestamp(),
+                    origen: 'Web'
+                };
+
+                await addDoc(collection(db, "portal_web"), data);
+
+                mostrarToast('✅ Solicitud registrada con éxito.', 'success');
+                form.reset();
+                document.getElementById('fileInput').value = '';
+                // Limpiar selección de plan
+                document.querySelectorAll('input[name="plan"]').forEach(r => r.checked = false);
+                // Restaurar botón
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> Enviar Solicitud';
+            } catch (error) {
+                console.error(error);
+                mostrarToast('Error al enviar la solicitud. Intenta de nuevo.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> Enviar Solicitud';
+            }
+        });
+    </script>
+</body>
+</html>
