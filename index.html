@@ -362,33 +362,35 @@
             }
         };
 
-        // --- Sincronización en tiempo real de promotores ---
-        onSnapshot(collection(db, "usuarios"), (snapshot) => {
+        // --- Sincronización en tiempo real de promotores (CORREGIDO) ---
+        // Lee de "promotores_publicos" (lectura pública, sin login) en vez de "usuarios"
+        // (que exige login y por eso daba "Missing or insufficient permissions").
+        // Esta colección solo debe contener nombre + cédula de promotores activos;
+        // administradores y supervisores nunca se publican ahí (se filtra al escribir,
+        // en MainViewModel.kt), así que aquí no hace falta volver a filtrar por rol.
+        // Ya NO hay lista estática inventada de respaldo: si algo falla, se avisa de verdad.
+        onSnapshot(collection(db, "promotores_publicos"), (snapshot) => {
+            console.log(`[promotores] Documentos recibidos de "promotores_publicos": ${snapshot.size}`);
+
             const options = [{ value: '', text: '-- Selecciona un promotor --' }];
             snapshot.forEach(doc => {
                 const data = doc.data();
+                console.log(`[promotores] ${data.nombre || '(sin nombre)'}`);
                 if (data.nombre) {
-                    options.push({ value: data.nombre, text: `${data.nombre} ${data.cedula ? '· ' + data.cedula : ''}` });
+                    options.push({ value: data.nombre, text: `${data.nombre}${data.cedula ? ' · ' + data.cedula : ''}` });
                 }
             });
-            // Si no hay promotores, añadir opción por defecto
-            if (options.length === 1) {
-                options.push({ value: 'Oficina Principal', text: 'Oficina Principal' });
-            }
+            console.log(`[promotores] Total mostrados en la encuesta: ${options.length - 1}`);
+
             promotorSelect.innerHTML = options.map(opt =>
                 `<option value="${opt.value}">${opt.text}</option>`
             ).join('');
         }, (error) => {
-            console.error('Error en suscripción de promotores:', error);
-            // Fallback: lista estática
-            const fallback = [
-                'Oficina Principal', 'JESUS AVILA', 'ANGEL JIMENEZ', 'JUAN BRITO',
-                'GRACCO REATTEGUI', 'CAMILA MATTEUCCI', 'DAVID STEWART', 'DAYANA MILLAN',
-                'ROSA MUJICA', 'ROSIMAR FUENTES', 'IVAN PEREZ', 'LUISANA MATA',
-                'RAXON AGUILERA', 'JEIMAR FERMENAL', 'FERNANDO PINTO', 'GENESIS MARIN'
-            ];
-            promotorSelect.innerHTML = '<option value="">-- Selecciona un promotor --</option>' +
-                fallback.map(p => `<option value="${p}">${p}</option>`).join('');
+            // Ya no hay lista falsa de respaldo: si esto se dispara (p. ej. por permisos de
+            // Firestore), la encuesta lo dice claramente en vez de mostrar nombres inventados.
+            console.error('[promotores] Error en suscripción (revisar reglas de Firestore para "promotores_publicos"):', error);
+            promotorSelect.innerHTML = '<option value="">-- No se pudo cargar la lista de promotores --</option>';
+            mostrarToast('No se pudo cargar la lista de promotores. Revisa la consola (F12) o recarga la página.', 'error');
         });
 
         // --- Compresión adaptativa de imagen (se queda dentro de Firestore, sin Storage) ---
