@@ -363,32 +363,25 @@
         };
 
         // --- Sincronización en tiempo real de promotores (CORREGIDO) ---
-        // 1. Ya NO hay lista estática inventada de respaldo: si algo falla, se avisa de verdad
-        //    en vez de mostrar 16 nombres que no existen en la base de datos.
-        // 2. Se excluyen los documentos cuyo rol sea "Administrador".
-        // 3. Se muestra en consola cuántos documentos llegaron y cuántos quedaron tras filtrar,
-        //    para poder diagnosticar de un vistazo si el problema es de datos o de permisos.
+        // Lee directo de "usuarios" (ya existente, sin duplicar datos).
+        // Se excluyen administradores y supervisores por el campo "rol"
+        // (los valores en tu base de datos vienen en minúscula, ej. "promotor").
+        // Ya NO hay lista estática inventada de respaldo: si algo falla, se avisa de verdad.
         onSnapshot(collection(db, "usuarios"), (snapshot) => {
             console.log(`[promotores] Documentos recibidos de "usuarios": ${snapshot.size}`);
 
-            const promotoresFiltrados = [];
+            const options = [{ value: '', text: '-- Selecciona un promotor --' }];
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const esAdmin = (data.rol || '').trim().toLowerCase() === 'administrador';
-                console.log(`[promotores] ${data.nombre || '(sin nombre)'} — rol: "${data.rol || '(vacío)'}" — ${esAdmin ? 'OMITIDO (admin)' : 'incluido'}`);
-                if (data.nombre && !esAdmin) {
-                    promotoresFiltrados.push({ nombre: data.nombre, cedula: data.cedula || '' });
+                const rol = (data.rol || '').trim().toLowerCase();
+                const esExcluido = rol === 'administrador' || rol === 'supervisor';
+                console.log(`[promotores] ${data.nombre || '(sin nombre)'} — rol: "${data.rol || '(vacío)'}" — ${esExcluido ? 'OMITIDO' : 'incluido'}`);
+                if (data.nombre && !esExcluido) {
+                    options.push({ value: data.nombre, text: `${data.nombre}${data.cedula ? ' · ' + data.cedula : ''}` });
                 }
             });
-            console.log(`[promotores] Total mostrados en la encuesta: ${promotoresFiltrados.length}`);
+            console.log(`[promotores] Total mostrados en la encuesta: ${options.length - 1}`);
 
-            const options = [{ value: '', text: '-- Selecciona un promotor --' }];
-            promotoresFiltrados.forEach(p => {
-                options.push({ value: p.nombre, text: `${p.nombre}${p.cedula ? ' · ' + p.cedula : ''}` });
-            });
-            if (options.length === 1) {
-                options.push({ value: 'Oficina Principal', text: 'Oficina Principal (sin promotores registrados)' });
-            }
             promotorSelect.innerHTML = options.map(opt =>
                 `<option value="${opt.value}">${opt.text}</option>`
             ).join('');
