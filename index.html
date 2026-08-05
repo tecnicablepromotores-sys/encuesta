@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Solicita tu servicio de Internet y TV con Tecnicable. Completa el formulario y un promotor gestionará tu instalación.">
     <title>Solicitud de Conexión a Internet · Tecnicable</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #0b0b0e;
@@ -27,12 +31,13 @@
             border-radius: 2rem;
             padding: 2rem 2rem 2.5rem;
             box-shadow: 0 24px 64px rgba(0,0,0,0.7);
-            transition: all 0.25s ease;
+            animation: fadeInUp 0.5s cubic-bezier(.16,1,.3,1) both;
         }
-        .form-header {
-            text-align: center;
-            margin-bottom: 2rem;
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+        .form-header { text-align: center; margin-bottom: 2rem; }
         .form-header .logo-icon {
             display: inline-block;
             background: linear-gradient(135deg, #2563eb, #8b5cf6);
@@ -41,22 +46,22 @@
             font-size: 1.8rem;
             color: white;
             margin-bottom: 0.5rem;
+            box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+            animation: pulseGlow 2.6s ease-in-out infinite;
         }
-        .form-header h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: white;
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 8px 24px rgba(37,99,235,0.35); }
+            50% { box-shadow: 0 8px 30px rgba(139,92,246,0.5); }
         }
+        .form-header h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; color: white; }
         .form-header h2 span { color: #60a5fa; }
-        .form-header p {
-            color: #9ca3af;
-            font-size: 0.9rem;
-            margin-top: 0.25rem;
-        }
+        .form-header p { color: #9ca3af; font-size: 0.9rem; margin-top: 0.25rem; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-group { margin-bottom: 1rem; }
+        .form-group {
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.5s cubic-bezier(.16,1,.3,1) both;
+        }
         label {
             display: block;
             font-size: 0.7rem;
@@ -74,8 +79,9 @@
             padding: 0.7rem 1rem;
             color: #e5e7eb;
             font-size: 0.85rem;
-            transition: border 0.2s, box-shadow 0.2s;
+            transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
+        .input-dark:hover { border-color: #38383f; }
         .input-dark:focus {
             outline: none;
             border-color: #3b82f6;
@@ -84,11 +90,7 @@
         .input-dark::placeholder { color: #4b4b55; }
         select.input-dark { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
 
-        .coord-group {
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: 0.5rem;
-        }
+        .coord-group { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; }
         .coord-group .input-dark { flex: 1; }
         .btn-icon {
             background: transparent;
@@ -99,22 +101,49 @@
             font-size: 0.8rem;
             font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
         }
-        .btn-icon:hover { background: #2a2a30; }
+        .btn-icon:hover { background: #2a2a30; border-color: #38383f; }
         .btn-icon:active { transform: scale(0.96); }
         .btn-green { border-color: #10b981; color: #34d399; }
         .btn-green:hover { background: #10b98120; }
+        .btn-icon.active { border-color: #3b82f6; color: #60a5fa; background: rgba(59,130,246,0.1); }
 
-        .plans-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 0.7rem;
-            margin-top: 0.3rem;
+        /* --- Mini mapa embebido --- */
+        .map-preview-wrap {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            border-radius: 1rem;
+            transition: max-height 0.35s cubic-bezier(.16,1,.3,1), opacity 0.3s ease, margin-top 0.35s ease;
+            margin-top: 0;
         }
+        .map-preview-wrap.open { max-height: 260px; opacity: 1; margin-top: 0.6rem; }
+        #mapPreview {
+            height: 220px;
+            width: 100%;
+            border-radius: 1rem;
+            border: 1px solid #2a2a32;
+            background: #121216;
+        }
+        .map-hint {
+            font-size: 0.65rem;
+            color: #6b7280;
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .leaflet-popup-content-wrapper { background: #16161c !important; color: #e5e7eb !important; border-radius: 0.75rem !important; }
+        .leaflet-popup-tip { background: #16161c !important; }
+        .leaflet-popup-content { font-size: 0.75rem !important; }
+        .leaflet-control-zoom a { background: #16161c !important; color: #e5e7eb !important; border-color: #2a2a32 !important; }
+        .leaflet-control-zoom a:hover { filter: brightness(1.15); }
+
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.7rem; margin-top: 0.3rem; }
         .plan-card {
             background: #121216;
             border: 1px solid #2a2a32;
@@ -122,14 +151,15 @@
             padding: 0.8rem 0.5rem;
             text-align: center;
             cursor: pointer;
-            transition: border 0.2s, background 0.2s, transform 0.1s;
+            transition: border 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
         }
-        .plan-card:hover { background: #1a1a20; }
+        .plan-card:hover { background: #1a1a20; transform: translateY(-2px); }
         .plan-card input { display: none; }
         .plan-card:has(input:checked) {
             border-color: #3b82f6;
             background: rgba(37, 99, 235, 0.08);
-            box-shadow: 0 0 0 1px #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6, 0 8px 20px rgba(37,99,235,0.2);
+            transform: translateY(-2px);
         }
         .plan-title { font-weight: 600; font-size: 0.9rem; display: block; }
         .plan-price { color: #34d399; font-size: 0.75rem; display: block; margin: 0.2rem 0; }
@@ -139,36 +169,27 @@
             width: 100%;
             padding: 0.9rem;
             background: linear-gradient(135deg, #2563eb, #7c3aed);
+            background-size: 160% 160%;
             border: none;
             border-radius: 1rem;
             color: white;
             font-weight: 700;
             font-size: 1rem;
             cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.2s;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, background-position 0.4s ease;
             margin-top: 1.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
         }
-        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.3); }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.35); background-position: 100% 50%; }
         .submit-btn:active { transform: scale(0.97); }
         .submit-btn:disabled { opacity: 0.6; pointer-events: none; }
 
-        .toast-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            max-width: 380px;
-            width: 100%;
-        }
+        .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; width: 100%; }
         .toast {
-            animation: toastIn 0.4s ease forwards;
+            animation: toastIn 0.4s cubic-bezier(.16,1,.3,1) forwards;
             padding: 0.9rem 1.2rem;
             border-radius: 1rem;
             backdrop-filter: blur(8px);
@@ -183,10 +204,7 @@
         .toast-success { background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.2); }
         .toast-error   { background: rgba(239,68,68,0.2); color: #fca5a5; border-color: rgba(239,68,68,0.2); }
         .toast-warning { background: rgba(245,158,11,0.2); color: #fcd34d; border-color: rgba(245,158,11,0.2); }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .toast-out { opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
 
         @media (max-width: 640px) {
@@ -195,8 +213,9 @@
             .coord-group { grid-template-columns: 1fr; }
             .plans-grid { grid-template-columns: repeat(3, 1fr); }
         }
-        @media (max-width: 400px) {
-            .plans-grid { grid-template-columns: 1fr 1fr; }
+        @media (max-width: 400px) { .plans-grid { grid-template-columns: 1fr 1fr; } }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
         }
     </style>
 </head>
@@ -212,63 +231,67 @@
         <form id="registroForm" novalidate>
             <div class="grid-2">
                 <div class="form-group">
-                    <label><i class="fa-regular fa-user"></i> Nombre(s) *</label>
+                    <label for="nombres"><i class="fa-regular fa-user"></i> Nombre(s) *</label>
                     <input type="text" id="nombres" class="input-dark" placeholder="Ej. María" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-regular fa-user"></i> Apellidos *</label>
+                    <label for="apellidos"><i class="fa-regular fa-user"></i> Apellidos *</label>
                     <input type="text" id="apellidos" class="input-dark" placeholder="Ej. Pérez" required>
                 </div>
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label><i class="fa-regular fa-id-card"></i> Cédula (CI) *</label>
-                    <input type="text" id="cedula" class="input-dark" placeholder="Ej. 12345678" required>
+                    <label for="cedula"><i class="fa-regular fa-id-card"></i> Cédula (CI) *</label>
+                    <input type="text" id="cedula" class="input-dark" placeholder="Ej. 12345678" inputmode="numeric" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-regular fa-envelope"></i> Correo electrónico *</label>
+                    <label for="correo"><i class="fa-regular fa-envelope"></i> Correo electrónico *</label>
                     <input type="email" id="correo" class="input-dark" placeholder="cliente@correo.com" required>
                 </div>
             </div>
             <div class="form-group">
-                <label><i class="fa-regular fa-location-dot"></i> Dirección corta *</label>
+                <label for="direccion"><i class="fa-regular fa-location-dot"></i> Dirección corta *</label>
                 <input type="text" id="direccion" class="input-dark" placeholder="Calle principal, casa #12" required>
             </div>
             <div class="form-group">
-                <label><i class="fa-regular fa-map-pin"></i> Punto de referencia *</label>
+                <label for="referencia"><i class="fa-regular fa-map-pin"></i> Punto de referencia *</label>
                 <input type="text" id="referencia" class="input-dark" placeholder="Cerca de la plaza, frente a la iglesia" required>
             </div>
             <div class="form-group">
-                <label><i class="fa-regular fa-globe"></i> Coordenadas *</label>
+                <label for="coordenadas"><i class="fa-regular fa-globe"></i> Coordenadas *</label>
                 <div class="coord-group">
                     <input type="text" id="coordenadas" class="input-dark" placeholder="Ej. 10.9543, -64.0124" required>
-                    <button type="button" class="btn-icon btn-green" onclick="getLoc()"><i class="fa-solid fa-location-crosshairs"></i> Ubicarme</button>
-                    <button type="button" class="btn-icon" onclick="window.open('https://maps.google.com')"><i class="fa-brands fa-google"></i> Maps</button>
+                    <button type="button" class="btn-icon btn-green" id="btnUbicarme"><i class="fa-solid fa-location-crosshairs"></i> Ubicarme</button>
+                    <button type="button" class="btn-icon" id="btnToggleMapa"><i class="fa-solid fa-map-location-dot"></i> Ver mapa</button>
+                </div>
+                <div class="map-preview-wrap" id="mapPreviewWrap">
+                    <div id="mapPreview"></div>
+                    <p class="map-hint"><i class="fa-solid fa-hand-pointer"></i> Arrastra el marcador para ajustar la ubicación exacta.</p>
                 </div>
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label><i class="fa-regular fa-house"></i> Barrio / Sector *</label>
+                    <label for="sector"><i class="fa-regular fa-house"></i> Barrio / Sector *</label>
                     <input type="text" id="sector" class="input-dark" placeholder="Ej. Los Cerros" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-regular fa-city"></i> Ciudad / Municipio *</label>
+                    <label for="ciudad"><i class="fa-regular fa-city"></i> Ciudad / Municipio *</label>
                     <input type="text" id="ciudad" class="input-dark" placeholder="Ej. Caracas" required>
                 </div>
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label><i class="fa-regular fa-phone"></i> Teléfono celular *</label>
-                    <input type="tel" id="telefono1" class="input-dark" placeholder="0412-1234567" required>
+                    <label for="telefono1"><i class="fa-regular fa-phone"></i> Teléfono celular *</label>
+                    <input type="tel" id="telefono1" class="input-dark" placeholder="0412-1234567" inputmode="tel" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-regular fa-phone"></i> Teléfono adicional</label>
-                    <input type="tel" id="telefono2" class="input-dark" placeholder="0424-7654321">
+                    <label for="telefono2"><i class="fa-regular fa-phone"></i> Teléfono adicional</label>
+                    <input type="tel" id="telefono2" class="input-dark" placeholder="0424-7654321" inputmode="tel">
                 </div>
             </div>
 
             <label style="display: block; margin: 0.5rem 0 0.3rem;"><i class="fa-regular fa-signal"></i> Plan de Internet *</label>
-            <div class="plans-grid">
+            <div class="plans-grid" id="plansGrid">
                 <label class="plan-card"><input type="radio" name="plan" value="Basico" required><span class="plan-title">Básico</span><span class="plan-price">$30</span><span class="plan-desc">400 Mbps</span></label>
                 <label class="plan-card"><input type="radio" name="plan" value="Hogar"><span class="plan-title">Hogar</span><span class="plan-price">$35</span><span class="plan-desc">600 Mbps</span></label>
                 <label class="plan-card"><input type="radio" name="plan" value="Turbo"><span class="plan-title">Turbo</span><span class="plan-price">$40</span><span class="plan-desc">800 Mbps</span></label>
@@ -277,12 +300,12 @@
             </div>
 
             <div class="form-group" style="margin-top: 1.2rem;">
-                <label><i class="fa-regular fa-image"></i> Foto de la Cédula (frente) *</label>
+                <label for="fileInput"><i class="fa-regular fa-image"></i> Foto de la Cédula (frente) *</label>
                 <input type="file" id="fileInput" class="input-dark" accept="image/*" required>
             </div>
 
             <div class="form-group">
-                <label><i class="fa-regular fa-id-badge"></i> Promotor responsable *</label>
+                <label for="promotor"><i class="fa-regular fa-id-badge"></i> Promotor responsable *</label>
                 <select id="promotor" class="input-dark" required>
                     <option value="">Cargando promotores...</option>
                 </select>
@@ -294,7 +317,6 @@
         </form>
     </div>
 
-    <!-- Toast container -->
     <div id="toast-container" class="toast-container"></div>
 
     <script type="importmap">
@@ -327,16 +349,20 @@
         const btn = document.getElementById('sendBtn');
         const promotorSelect = document.getElementById('promotor');
         const toastContainer = document.getElementById('toast-container');
+        const coordInput = document.getElementById('coordenadas');
+        const fileInput = document.getElementById('fileInput');
+        const mapWrap = document.getElementById('mapPreviewWrap');
+        const btnToggleMapa = document.getElementById('btnToggleMapa');
+
+        const BTN_DEFAULT_HTML = '<i class="fa-regular fa-paper-plane"></i> Enviar Solicitud';
+        const BTN_SENDING_HTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+        const CENTRO_DEFECTO = [10.4806, -66.9036]; // Caracas, mismo centro usado en el panel de rastreo
 
         // --- Toast ---
         function mostrarToast(mensaje, tipo = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast toast-${tipo}`;
-            const iconMap = {
-                success: 'fa-circle-check',
-                error: 'fa-circle-exclamation',
-                warning: 'fa-triangle-exclamation'
-            };
+            const iconMap = { success: 'fa-circle-check', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation' };
             toast.innerHTML = `<i class="fa-solid ${iconMap[tipo] || iconMap.success}"></i><span>${mensaje}</span>`;
             toastContainer.appendChild(toast);
             setTimeout(() => {
@@ -345,58 +371,108 @@
             }, 4000);
         }
 
+        // --- Mini mapa embebido (Leaflet) ---
+        let mapa = null;
+        let marcador = null;
+        let mapaVisible = false;
+
+        function parsearCoordenadas(texto) {
+            const partes = (texto || '').split(',').map(p => parseFloat(p.trim()));
+            if (partes.length === 2 && !isNaN(partes[0]) && !isNaN(partes[1])) return partes;
+            return null;
+        }
+
+        function actualizarInputDesdeMarcador(latlng) {
+            coordInput.value = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
+        }
+
+        function inicializarMapa(centro) {
+            mapa = L.map('mapPreview', { zoomControl: true, attributionControl: false }).setView(centro, 15);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap, &copy; CartoDB'
+            }).addTo(mapa);
+            marcador = L.marker(centro, { draggable: true }).addTo(mapa);
+            marcador.on('dragend', () => actualizarInputDesdeMarcador(marcador.getLatLng()));
+            mapa.on('click', (e) => {
+                marcador.setLatLng(e.latlng);
+                actualizarInputDesdeMarcador(e.latlng);
+            });
+        }
+
+        function moverMapaA(centro, actualizarInput = false) {
+            if (!mapa) return;
+            mapa.setView(centro, 16);
+            marcador.setLatLng(centro);
+            if (actualizarInput) actualizarInputDesdeMarcador({ lat: centro[0], lng: centro[1] });
+        }
+
+        function mostrarMapa() {
+            const coordsActuales = parsearCoordenadas(coordInput.value) || CENTRO_DEFECTO;
+            mapWrap.classList.add('open');
+            btnToggleMapa.classList.add('active');
+            mapaVisible = true;
+            // Leaflet necesita el contenedor visible con tamaño real antes de iniciar/redimensionar.
+            setTimeout(() => {
+                if (!mapa) inicializarMapa(coordsActuales);
+                else { mapa.invalidateSize(); moverMapaA(coordsActuales); }
+            }, 320);
+        }
+
+        function ocultarMapa() {
+            mapWrap.classList.remove('open');
+            btnToggleMapa.classList.remove('active');
+            mapaVisible = false;
+        }
+
+        btnToggleMapa.addEventListener('click', () => (mapaVisible ? ocultarMapa() : mostrarMapa()));
+
+        // Si el usuario escribe/pega coordenadas manualmente y el mapa está abierto, lo sincroniza.
+        coordInput.addEventListener('change', () => {
+            const coords = parsearCoordenadas(coordInput.value);
+            if (coords && mapaVisible) moverMapaA(coords);
+        });
+
         // --- Geolocalización ---
-        window.getLoc = () => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    p => {
-                        document.getElementById('coordenadas').value = `${p.coords.latitude}, ${p.coords.longitude}`;
-                        mostrarToast('Ubicación obtenida correctamente', 'success');
-                    },
-                    () => {
-                        mostrarToast('No se pudo obtener la ubicación. Ingresa manualmente.', 'warning');
-                    }
-                );
-            } else {
-                mostrarToast('Geolocalización no disponible.', 'error');
+        document.getElementById('btnUbicarme').addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                mostrarToast('Geolocalización no disponible en este dispositivo.', 'error');
+                return;
             }
-        };
+            navigator.geolocation.getCurrentPosition(
+                p => {
+                    const coords = [p.coords.latitude, p.coords.longitude];
+                    coordInput.value = `${coords[0]}, ${coords[1]}`;
+                    mostrarToast('Ubicación obtenida correctamente', 'success');
+                    if (!mapaVisible) mostrarMapa();
+                    else moverMapaA(coords);
+                },
+                () => mostrarToast('No se pudo obtener la ubicación. Ingrésala manualmente.', 'warning'),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
 
-        // --- Sincronización en tiempo real de promotores (CORREGIDO) ---
-        // Lee directo de "usuarios" (ya existente, sin duplicar datos).
-        // Se excluyen administradores y supervisores por el campo "rol"
-        // (los valores en tu base de datos vienen en minúscula, ej. "promotor").
-        // Ya NO hay lista estática inventada de respaldo: si algo falla, se avisa de verdad.
+        // --- Sincronización en tiempo real de promotores ---
+        // Lee directo de "usuarios". Se excluyen administradores y supervisores por el campo "rol".
         onSnapshot(collection(db, "usuarios"), (snapshot) => {
-            console.log(`[promotores] Documentos recibidos de "usuarios": ${snapshot.size}`);
-
             const options = [{ value: '', text: '-- Selecciona un promotor --' }];
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const rol = (data.rol || '').trim().toLowerCase();
                 const esExcluido = rol === 'administrador' || rol === 'supervisor';
-                console.log(`[promotores] ${data.nombre || '(sin nombre)'} — rol: "${data.rol || '(vacío)'}" — ${esExcluido ? 'OMITIDO' : 'incluido'}`);
                 if (data.nombre && !esExcluido) {
                     options.push({ value: data.nombre, text: `${data.nombre}${data.cedula ? ' · ' + data.cedula : ''}` });
                 }
             });
-            console.log(`[promotores] Total mostrados en la encuesta: ${options.length - 1}`);
-
-            promotorSelect.innerHTML = options.map(opt =>
-                `<option value="${opt.value}">${opt.text}</option>`
-            ).join('');
+            promotorSelect.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
         }, (error) => {
-            // Ya no hay lista falsa de respaldo: si esto se dispara (p. ej. por permisos de
-            // Firestore), la encuesta lo dice claramente en vez de mostrar nombres inventados.
             console.error('[promotores] Error en suscripción (revisar reglas de Firestore para "usuarios"):', error);
             promotorSelect.innerHTML = '<option value="">-- No se pudo cargar la lista de promotores --</option>';
-            mostrarToast('No se pudo cargar la lista de promotores. Revisa la consola (F12) o recarga la página.', 'error');
+            mostrarToast('No se pudo cargar la lista de promotores. Recarga la página.', 'error');
         });
 
-        // --- Compresión adaptativa de imagen (se queda dentro de Firestore, sin Storage) ---
-        // Reduce dimensiones/calidad hasta que el string Base64 quede muy por debajo
-        // del límite de 1MB por documento de Firestore (se deja margen para el resto de campos).
-        const LIMITE_BASE64_BYTES = 650 * 1024; // ~650KB de margen seguro
+        // --- Compresión adaptativa de imagen (queda dentro de Firestore, sin Storage) ---
+        const LIMITE_BASE64_BYTES = 650 * 1024; // ~650KB de margen seguro por documento
+        const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB tope de entrada, evita colgar el navegador
 
         function comprimirImagen(file) {
             return new Promise((resolve, reject) => {
@@ -407,15 +483,12 @@
                     img.onerror = () => reject(new Error('El archivo seleccionado no es una imagen válida.'));
                     img.onload = () => {
                         const MAX = 800;
-                        // No ampliar imágenes que ya son más pequeñas que MAX
                         const scale = Math.min(1, MAX / img.width);
                         const canvas = document.createElement('canvas');
                         canvas.width = Math.round(img.width * scale);
                         canvas.height = Math.round(img.height * scale);
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                        // Reduce calidad progresivamente hasta caber en el límite seguro
                         let calidad = 0.7;
                         let resultado = canvas.toDataURL('image/jpeg', calidad);
                         while (resultado.length > LIMITE_BASE64_BYTES && calidad > 0.3) {
@@ -423,7 +496,6 @@
                             resultado = canvas.toDataURL('image/jpeg', calidad);
                         }
 
-                        // Si aun así excede el límite, reduce también las dimensiones
                         let anchoActual = canvas.width;
                         while (resultado.length > LIMITE_BASE64_BYTES && anchoActual > 300) {
                             anchoActual = Math.round(anchoActual * 0.85);
@@ -434,7 +506,6 @@
                             canvas2.getContext('2d').drawImage(canvas, 0, 0, anchoActual, altoActual);
                             resultado = canvas2.toDataURL('image/jpeg', calidad);
                         }
-
                         resolve(resultado);
                     };
                     img.src = ev.target.result;
@@ -443,11 +514,24 @@
             });
         }
 
+        function resetBoton() {
+            btn.disabled = false;
+            btn.innerHTML = BTN_DEFAULT_HTML;
+        }
+
         // --- Envío del formulario ---
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const file = document.getElementById('fileInput').files[0];
+            // Validación completa de todos los campos requeridos (antes solo se
+            // validaban la foto y las coordenadas; el resto se podía enviar vacío).
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                mostrarToast('Completa todos los campos obligatorios (*).', 'warning');
+                return;
+            }
+
+            const file = fileInput.files[0];
             if (!file) {
                 mostrarToast('Por favor selecciona una foto de la cédula.', 'warning');
                 return;
@@ -456,32 +540,41 @@
                 mostrarToast('El archivo debe ser una imagen (jpg, png, etc.).', 'warning');
                 return;
             }
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                mostrarToast('La imagen es demasiado grande (máx. 15MB). Usa una foto más liviana.', 'warning');
+                return;
+            }
 
-            const coordVal = document.getElementById('coordenadas').value.trim();
-            if (!coordVal) {
-                mostrarToast('Por favor ingresa las coordenadas o usa el botón de ubicación.', 'warning');
+            const planSeleccionado = document.querySelector('input[name="plan"]:checked');
+            if (!planSeleccionado) {
+                mostrarToast('Selecciona un plan de Internet.', 'warning');
+                return;
+            }
+
+            if (!promotorSelect.value) {
+                mostrarToast('Selecciona el promotor responsable.', 'warning');
                 return;
             }
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+            btn.innerHTML = BTN_SENDING_HTML;
 
             try {
                 const base64 = await comprimirImagen(file);
 
                 const data = {
-                    nombres: document.getElementById('nombres').value,
-                    apellidos: document.getElementById('apellidos').value,
-                    cedula: document.getElementById('cedula').value,
-                    correo: document.getElementById('correo').value,
-                    direccion: document.getElementById('direccion').value,
-                    referencia: document.getElementById('referencia').value,
-                    coordenadas: coordVal,
-                    sector: document.getElementById('sector').value,
-                    ciudad: document.getElementById('ciudad').value,
-                    telefono1: document.getElementById('telefono1').value,
-                    telefono2: document.getElementById('telefono2').value,
-                    plan: document.querySelector('input[name="plan"]:checked')?.value || '',
+                    nombres: document.getElementById('nombres').value.trim(),
+                    apellidos: document.getElementById('apellidos').value.trim(),
+                    cedula: document.getElementById('cedula').value.trim(),
+                    correo: document.getElementById('correo').value.trim(),
+                    direccion: document.getElementById('direccion').value.trim(),
+                    referencia: document.getElementById('referencia').value.trim(),
+                    coordenadas: coordInput.value.trim(),
+                    sector: document.getElementById('sector').value.trim(),
+                    ciudad: document.getElementById('ciudad').value.trim(),
+                    telefono1: document.getElementById('telefono1').value.trim(),
+                    telefono2: document.getElementById('telefono2').value.trim(),
+                    plan: planSeleccionado.value,
                     promotor: promotorSelect.value,
                     foto_binaria: base64,
                     fecha_registro: serverTimestamp(),
@@ -492,17 +585,13 @@
 
                 mostrarToast('✅ Solicitud registrada con éxito.', 'success');
                 form.reset();
-                document.getElementById('fileInput').value = '';
-                // Limpiar selección de plan
-                document.querySelectorAll('input[name="plan"]').forEach(r => r.checked = false);
-                // Restaurar botón
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> Enviar Solicitud';
+                fileInput.value = '';
+                ocultarMapa();
+                resetBoton();
             } catch (error) {
                 console.error(error);
                 mostrarToast('Error al enviar la solicitud. Intenta de nuevo.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-regular fa-paper-plane"></i> Enviar Solicitud';
+                resetBoton();
             }
         });
     </script>
