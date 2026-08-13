@@ -1,1379 +1,336 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
-    <title>Tecnicable · Gestión Firebase</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Solicita tu servicio de Internet y TV con Tecnicable. Completa el formulario y un promotor gestionará tu instalación.">
+    <title>Solicitud de Conexión a Internet · Tecnicable</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        /* ========== VARIABLES TEMAS ========== */
-        :root {
-            --bg-body: #0d0d12;
-            --bg-card: rgba(24, 24, 28, 0.5);
-            --bg-sidebar: rgba(17, 17, 22, 0.85);
-            --bg-header: rgba(17, 17, 22, 0.8);
-            --bg-input: rgba(24, 24, 28, 0.6);
-            --border-color: rgba(255, 255, 255, 0.06);
-            --text-primary: #e2e8f0;
-            --text-secondary: #9ca3af;
-            --text-muted: #4b4b55;
-            --shadow: 0 8px 32px rgba(0,0,0,0.3);
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --map-tile: 'dark_all';
-        }
-
-        body.light-theme {
-            --bg-body: #f0f4f8;
-            --bg-card: rgba(255, 255, 255, 0.7);
-            --bg-sidebar: rgba(255, 255, 255, 0.85);
-            --bg-header: rgba(255, 255, 255, 0.8);
-            --bg-input: rgba(255, 255, 255, 0.8);
-            --border-color: rgba(0, 0, 0, 0.08);
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --text-muted: #94a3b8;
-            --shadow: 0 8px 32px rgba(0,0,0,0.08);
-            --accent: #0d9488;
-            --accent-hover: #0f766e;
-            --map-tile: 'light_all';
-        }
-
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg-body);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 0;
-            transition: background 0.3s, color 0.3s;
-        }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: var(--bg-card); border-radius: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b3b44; border-radius: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #5a5a66; }
-        .light-theme .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; }
-        .light-theme .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            background: var(--bg-sidebar);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-right: 1px solid var(--border-color);
+            background: #0b0b0e;
+            color: #e5e7eb;
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            transition: transform 0.25s ease, background 0.3s;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            z-index: 40;
-            transform: translateX(-100%);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        .sidebar.open { transform: translateX(0); }
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(2px);
-            z-index: 35;
-            display: none;
+        .form-wrapper {
+            width: 100%;
+            max-width: 720px;
+            background: rgba(20, 20, 25, 0.85);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 2rem;
+            padding: 2rem 2rem 2.5rem;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+            animation: fadeInUp 0.5s cubic-bezier(.16,1,.3,1) both;
         }
-        .sidebar-overlay.show { display: block; }
-
-        @media (min-width: 768px) {
-            .sidebar {
-                position: relative;
-                transform: translateX(0);
-                flex-shrink: 0;
-            }
-            .sidebar-overlay { display: none !important; }
-            .hamburger-btn { display: none !important; }
-        }
-
-        .nav-btn {
-            position: relative;
-            transition: all 0.2s ease;
-            font-size: 0.8rem;
-            border-radius: 0.75rem;
-            padding: 0.6rem 1rem;
-            margin-bottom: 2px;
-            color: var(--text-secondary);
-        }
-        .nav-btn:hover {
-            background: rgba(255,255,255,0.05);
-            transform: translateX(4px);
-            color: var(--text-primary);
-        }
-        .nav-btn:active { transform: scale(0.96); }
-        .nav-btn.active {
-            background: rgba(37, 99, 235, 0.15) !important;
-            color: var(--text-primary) !important;
-            border-left: 4px solid var(--accent);
-        }
-        .light-theme .nav-btn.active {
-            background: rgba(13, 148, 136, 0.12) !important;
-            border-left-color: var(--accent);
-        }
-        .nav-btn.active i { color: var(--accent); }
-        .nav-btn i { width: 1.2rem; font-size: 1.1rem; }
-
-        .seccion-view { animation: fadeSlide 0.3s ease both; }
-        @keyframes fadeSlide {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(18px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .form-header { text-align: center; margin-bottom: 2rem; }
+        .form-header .logo-icon {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #8b5cf6);
+            padding: 12px 16px;
+            border-radius: 1.5rem;
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+            animation: pulseGlow 2.6s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 8px 24px rgba(37,99,235,0.35); }
+            50% { box-shadow: 0 8px 30px rgba(139,92,246,0.5); }
+        }
+        .form-header h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; color: white; }
+        .form-header h2 span { color: #60a5fa; }
+        .form-header p { color: #9ca3af; font-size: 0.9rem; margin-top: 0.25rem; }
 
-        .glass-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow);
-            transition: all 0.2s ease;
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-group {
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.5s cubic-bezier(.16,1,.3,1) both;
         }
-        .glass-card:hover {
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-            border-color: rgba(255,255,255,0.1);
-        }
-        .light-theme .glass-card:hover {
-            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-            border-color: rgba(0,0,0,0.12);
-        }
-
-        #toast-container {
-            position: fixed;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            max-width: 340px;
-            width: 90%;
-        }
-        .toast {
-            animation: toastIn 0.4s ease forwards;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            font-size: 0.8rem;
-            font-weight: 500;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid;
-        }
-        .toast-success { background: rgba(16,185,129,0.15); color: #6ee7b7; border-left-color: #10b981; }
-        .toast-error   { background: rgba(239,68,68,0.15); color: #fca5a5; border-left-color: #ef4444; }
-        .toast-warning { background: rgba(245,158,11,0.15); color: #fcd34d; border-left-color: #f59e0b; }
-        .light-theme .toast-success { background: rgba(16,185,129,0.2); color: #065f46; }
-        .light-theme .toast-error   { background: rgba(239,68,68,0.2); color: #991b1b; }
-        .light-theme .toast-warning { background: rgba(245,158,11,0.2); color: #92400e; }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateX(30px) scale(0.95); }
-            to { opacity: 1; transform: translateX(0) scale(1); }
-        }
-        .toast-out { opacity: 0; transform: translateX(30px); transition: all 0.3s ease; }
-
-        .table-wrap {
-            overflow-x: auto;
-            border-radius: 1rem;
-            -webkit-overflow-scrolling: touch;
-            border: 1px solid var(--border-color);
-        }
-        .table-wrap table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            font-size: 0.75rem;
-            min-width: 600px;
-        }
-        .table-wrap thead th {
-            background: rgba(20, 20, 26, 0.8);
-            color: var(--text-secondary);
+        label {
+            display: block;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-size: 0.55rem;
-            padding: 0.7rem 0.8rem;
-            position: sticky;
-            top: 0;
-            z-index: 5;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
+            letter-spacing: 0.04em;
+            color: #9ca3af;
+            margin-bottom: 0.3rem;
         }
-        .light-theme .table-wrap thead th {
-            background: rgba(241, 245, 249, 0.8);
-        }
-        .table-wrap tbody td {
-            padding: 0.6rem 0.8rem;
-            border-bottom: 1px solid var(--border-color);
-            vertical-align: middle;
-            word-break: break-word;
-        }
-        .table-wrap tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
-        .table-wrap tbody tr:hover { background: rgba(255,255,255,0.04); }
-        .light-theme .table-wrap tbody tr:nth-child(even) { background: rgba(0,0,0,0.015); }
-        .light-theme .table-wrap tbody tr:hover { background: rgba(0,0,0,0.04); }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            padding: 0.15rem 0.6rem;
-            border-radius: 9999px;
-            font-size: 0.55rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            border: 1px solid transparent;
-            white-space: nowrap;
-        }
-        .badge-app { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.2); }
-        .badge-web { background: rgba(6,182,212,0.15); color: #67e8f9; border-color: rgba(6,182,212,0.2); }
-        .badge-censo { background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.2); }
-        .badge-estado-completado { background: rgba(16,185,129,0.15); color: #6ee7b7; border-color: rgba(16,185,129,0.2); }
-        .badge-estado-pendiente  { background: rgba(245,158,11,0.15); color: #fcd34d; border-color: rgba(245,158,11,0.2); }
-        .badge-estado-proceso   { background: rgba(59,130,246,0.15); color: #93bbfc; border-color: rgba(59,130,246,0.2); }
-        .badge-estado-cancelado { background: rgba(239,68,68,0.15); color: #fca5a5; border-color: rgba(239,68,68,0.2); }
-        .badge-estado-procesado { background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.2); }
-        .light-theme .badge-app { background: rgba(16,185,129,0.2); color: #065f46; }
-        .light-theme .badge-web { background: rgba(6,182,212,0.2); color: #0e7490; }
-        .light-theme .badge-censo { background: rgba(245,158,11,0.2); color: #92400e; }
-        .light-theme .badge-estado-completado { background: rgba(16,185,129,0.2); color: #065f46; }
-        .light-theme .badge-estado-pendiente  { background: rgba(245,158,11,0.2); color: #92400e; }
-        .light-theme .badge-estado-proceso   { background: rgba(59,130,246,0.2); color: #1e40af; }
-        .light-theme .badge-estado-cancelado { background: rgba(239,68,68,0.2); color: #991b1b; }
-        .light-theme .badge-estado-procesado { background: rgba(16,185,129,0.2); color: #065f46; }
-
         .input-dark {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 0.5rem 0.9rem;
-            color: var(--text-primary);
-            font-size: 0.8rem;
-            transition: border 0.2s, box-shadow 0.2s;
             width: 100%;
+            background: #121216;
+            border: 1px solid #2a2a32;
+            border-radius: 0.75rem;
+            padding: 0.7rem 1rem;
+            color: #e5e7eb;
+            font-size: 0.85rem;
+            transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
+        .input-dark:hover { border-color: #38383f; }
         .input-dark:focus {
             outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
         }
-        .input-dark::placeholder { color: var(--text-muted); }
-        .light-theme .input-dark { background: white; }
+        .input-dark::placeholder { color: #4b4b55; }
+        select.input-dark { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #0f766e);
-            color: white;
-            font-weight: 600;
-            padding: 0.5rem 1.5rem;
-            border-radius: 0.75rem;
-            transition: all 0.2s;
-            border: none;
-            cursor: pointer;
-            font-size: 0.85rem;
-            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(13, 148, 136, 0.4);
-        }
-        .btn-primary:active { transform: scale(0.97); }
-
-        .btn-ghost {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 0.4rem 1rem;
-            border-radius: 0.75rem;
-            transition: background 0.2s;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-        .btn-ghost:hover { background: rgba(255,255,255,0.1); }
-        .light-theme .btn-ghost { background: rgba(0,0,0,0.03); }
-        .light-theme .btn-ghost:hover { background: rgba(0,0,0,0.06); }
-
-        .btn-action {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.15s;
+        .coord-group { display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; }
+        .coord-group .input-dark { flex: 1; }
+        .btn-icon {
             background: transparent;
-            color: var(--text-secondary);
-        }
-        .btn-action:hover { transform: scale(1.1); }
-        .btn-action.ver { color: #60a5fa; }
-        .btn-action.ver:hover { background: rgba(59,130,246,0.2); }
-        .btn-action.editar { color: #fbbf24; }
-        .btn-action.editar:hover { background: rgba(251,191,36,0.2); }
-        .btn-action.estado { color: #a78bfa; }
-        .btn-action.estado:hover { background: rgba(167,139,250,0.2); }
-        .btn-action.eliminar { color: #f87171; }
-        .btn-action.eliminar:hover { background: rgba(248,113,113,0.2); }
-        .light-theme .btn-action.ver { color: #2563eb; }
-        .light-theme .btn-action.editar { color: #d97706; }
-        .light-theme .btn-action.estado { color: #7c3aed; }
-        .light-theme .btn-action.eliminar { color: #dc2626; }
-
-        .login-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: 2rem;
-            box-shadow: var(--shadow);
-        }
-        .login-card .top-bar {
-            height: 4px;
-            background: linear-gradient(to right, var(--accent), #0f766e, #06b6d4);
-            border-radius: 2rem 2rem 0 0;
-        }
-
-        .modal-overlay {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            animation: fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .modal-content {
-            animation: modalSlide 0.25s ease forwards;
-        }
-        @keyframes modalSlide {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        /* ========== PRELOADER (evita el flash de login antes del dashboard) ========== */
-        #app-preloader {
-            position: fixed;
-            inset: 0;
-            z-index: 9998;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-body);
-            transition: opacity 0.35s ease, visibility 0.35s ease;
-        }
-        #app-preloader.fade-out {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-        .preloader-inner { text-align: center; }
-        .preloader-logo {
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            background: linear-gradient(135deg, var(--accent), #0f766e);
-            box-shadow: 0 8px 24px rgba(59,130,246,0.35);
-            animation: preloaderPulse 1.4s ease-in-out infinite;
-        }
-        .preloader-logo i { color: #fff; font-size: 1.4rem; }
-        @keyframes preloaderPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
-        .preloader-ring {
-            width: 34px;
-            height: 34px;
-            margin: 0 auto;
-            border-radius: 50%;
-            border: 3px solid rgba(255,255,255,0.12);
-            border-top-color: var(--accent);
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .preloader-text {
-            margin-top: 0.9rem;
-            font-size: 0.7rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-        .spinner { animation: spin 0.7s linear infinite; }
-
-        /* ========== VISOR DE FOTO (lightbox) ========== */
-        #modal-foto {
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(6px);
-        }
-        #modal-foto img {
-            max-width: min(90vw, 640px);
-            max-height: 85vh;
-            border-radius: 1rem;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .foto-detalle-thumb {
-            max-width: 220px;
-            max-height: 160px;
+            border: 1px solid #2a2a32;
             border-radius: 0.75rem;
-            border: 1px solid var(--border-color);
-            cursor: zoom-in;
-            display: block;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            object-fit: cover;
-        }
-        .foto-detalle-thumb:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-        /* ========== MODAL DETALLE PROFESIONAL ========== */
-        .detalle-close-btn {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            z-index: 20;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 9999px;
-            border: none;
-            background: rgba(0,0,0,0.4);
-            color: #fff;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
-            transition: background 0.2s ease, transform 0.15s ease;
-        }
-        .detalle-close-btn:hover { background: rgba(0,0,0,0.6); transform: scale(1.06); }
-
-        .detalle-hero {
-            height: 110px;
-            width: 100%;
-            background: linear-gradient(135deg, var(--accent), #0f766e);
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            filter: saturate(1.05);
-        }
-        .detalle-hero::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%);
-        }
-
-        .detalle-avatar {
-            width: 68px;
-            height: 68px;
-            border-radius: 1rem;
-            border: 3px solid var(--bg-card);
-            background: var(--bg-input);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
-            overflow: hidden;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.35rem;
-            font-weight: 700;
-            color: var(--accent);
-        }
-        .detalle-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        .detalle-badges { min-height: 1.4rem; }
-
-        .detalle-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.55rem;
-        }
-        @media (min-width: 560px) {
-            .detalle-grid { grid-template-columns: 1fr 1fr; }
-            .detalle-field-wide { grid-column: 1 / -1; }
-        }
-
-        .detalle-field {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 0.85rem;
-            padding: 0.6rem 0.7rem;
-            display: flex;
-            gap: 0.6rem;
-            align-items: flex-start;
-            transition: border-color 0.15s ease;
-        }
-        .detalle-field:hover { border-color: rgba(255,255,255,0.16); }
-        .light-theme .detalle-field:hover { border-color: rgba(0,0,0,0.16); }
-        .detalle-field-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 0.6rem;
-            background: rgba(59,130,246,0.12);
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-        .detalle-field-body { min-width: 0; flex: 1; }
-        .detalle-field-label {
-            font-size: 0.6rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 0.15rem;
-        }
-        .detalle-field-value {
+            padding: 0.7rem 1rem;
+            color: #d1d5db;
             font-size: 0.8rem;
             font-weight: 500;
-            color: var(--text-primary);
-            word-break: break-word;
-            line-height: 1.35;
-        }
-        .detalle-field-value a { color: var(--accent); text-decoration: none; }
-        .detalle-field-value a:hover { text-decoration: underline; }
-        .detalle-field-action {
-            background: none;
-            border: none;
-            color: var(--text-muted);
             cursor: pointer;
-            padding: 0.3rem;
-            border-radius: 0.5rem;
-            flex-shrink: 0;
-            font-size: 0.75rem;
-            transition: color 0.15s ease, background 0.15s ease;
+            transition: background 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
         }
-        .detalle-field-action:hover { color: var(--accent); background: rgba(59,130,246,0.1); }
+        .btn-icon:hover { background: #2a2a30; border-color: #38383f; }
+        .btn-icon:active { transform: scale(0.96); }
+        .btn-green { border-color: #10b981; color: #34d399; }
+        .btn-green:hover { background: #10b98120; }
+        .btn-icon.active { border-color: #3b82f6; color: #60a5fa; background: rgba(59,130,246,0.1); }
 
-        .detalle-fotos-section {
-            margin-top: 0.8rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid var(--border-color);
+        /* --- Mini mapa embebido --- */
+        .map-preview-wrap {
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            border-radius: 1rem;
+            transition: max-height 0.35s cubic-bezier(.16,1,.3,1), opacity 0.3s ease, margin-top 0.35s ease;
+            margin-top: 0;
         }
-        .detalle-fotos-titulo {
-            font-size: 0.6rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-        }
-        .detalle-fotos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-            gap: 0.5rem;
-        }
-        .detalle-fotos-grid img {
+        .map-preview-wrap.open { max-height: 260px; opacity: 1; margin-top: 0.6rem; }
+        #mapPreview {
+            height: 220px;
             width: 100%;
-            height: 88px;
-            object-fit: cover;
-            border-radius: 0.65rem;
-            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            border: 1px solid #2a2a32;
+            background: #121216;
         }
-
-        .foto-detalle-placeholder {
+        .map-hint {
+            font-size: 0.65rem;
+            color: #6b7280;
+            margin-top: 0.4rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
-            border: 1px dashed var(--border-color);
-            color: var(--text-muted);
-            font-size: 0.75rem;
+            gap: 0.3rem;
         }
+        .leaflet-popup-content-wrapper { background: #16161c !important; color: #e5e7eb !important; border-radius: 0.75rem !important; }
+        .leaflet-popup-tip { background: #16161c !important; }
+        .leaflet-popup-content { font-size: 0.75rem !important; }
+        .leaflet-control-zoom a { background: #16161c !important; color: #e5e7eb !important; border-color: #2a2a32 !important; }
+        .leaflet-control-zoom a:hover { filter: brightness(1.15); }
 
-        .profile-dropdown .profile-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: calc(100% + 8px);
-            background: var(--bg-sidebar);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border-color);
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.7rem; margin-top: 0.3rem; }
+        .plan-card {
+            background: #121216;
+            border: 1px solid #2a2a32;
             border-radius: 1rem;
-            box-shadow: var(--shadow);
-            min-width: 220px;
-            z-index: 30;
-            padding: 0.4rem 0;
+            padding: 0.8rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
         }
-        .profile-dropdown .profile-menu.show { display: block; }
-        .profile-dropdown .profile-menu .profile-header {
-            padding: 0.6rem 1rem;
-            border-bottom: 1px solid var(--border-color);
+        .plan-card:hover { background: #1a1a20; transform: translateY(-2px); }
+        .plan-card input { display: none; }
+        .plan-card:has(input:checked) {
+            border-color: #3b82f6;
+            background: rgba(37, 99, 235, 0.08);
+            box-shadow: 0 0 0 1px #3b82f6, 0 8px 20px rgba(37,99,235,0.2);
+            transform: translateY(-2px);
+        }
+        .plan-title { font-weight: 600; font-size: 0.9rem; display: block; }
+        .plan-price { color: #34d399; font-size: 0.75rem; display: block; margin: 0.2rem 0; }
+        .plan-desc { color: #6b7280; font-size: 0.6rem; display: block; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            background-size: 160% 160%;
+            border: none;
+            border-radius: 1rem;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, background-position 0.4s ease;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.35); background-position: 100% 50%; }
+        .submit-btn:active { transform: scale(0.97); }
+        .submit-btn:disabled { opacity: 0.6; pointer-events: none; }
+
+        .toast-container { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; width: 100%; }
+        .toast {
+            animation: toastIn 0.4s cubic-bezier(.16,1,.3,1) forwards;
+            padding: 0.9rem 1.2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.06);
         }
-        .profile-dropdown .profile-menu .profile-header img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 2px solid var(--accent);
-            object-fit: cover;
-        }
-        .profile-dropdown .profile-menu .profile-actions button {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            width: 100%;
-            padding: 0.4rem 1rem;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .profile-dropdown .profile-menu .profile-actions button:hover { background: rgba(255,255,255,0.05); }
-        .profile-dropdown .profile-menu .profile-actions button.text-red { color: #f87171; }
-
-        #mapa-rastreo {
-            height: 350px;
-            width: 100%;
-            border-radius: 1rem;
-            border: 1px solid var(--border-color);
-            background: #1a1a1e;
-        }
-        @media (min-width: 768px) { #mapa-rastreo { height: 450px; } }
-        .leaflet-popup-content-wrapper {
-            background: var(--bg-card) !important;
-            color: var(--text-primary) !important;
-            border-radius: 0.75rem !important;
-            border: 1px solid var(--border-color) !important;
-        }
-        .leaflet-popup-tip { background: var(--bg-card) !important; }
-        .leaflet-popup-content { font-size: 0.75rem !important; }
-        .leaflet-control-zoom a {
-            background: var(--bg-card) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-color) !important;
-        }
-        .leaflet-control-zoom a:hover { background: var(--bg-card) !important; filter: brightness(1.1); }
-
-        .theme-toggle {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            border-radius: 9999px;
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 1rem;
-        }
-        .theme-toggle:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--text-primary);
-        }
-        .light-theme .theme-toggle:hover {
-            background: rgba(0,0,0,0.05);
-        }
+        .toast-success { background: rgba(16,185,129,0.2); color: #6ee7b7; border-color: rgba(16,185,129,0.2); }
+        .toast-error   { background: rgba(239,68,68,0.2); color: #fca5a5; border-color: rgba(239,68,68,0.2); }
+        .toast-warning { background: rgba(245,158,11,0.2); color: #fcd34d; border-color: rgba(245,158,11,0.2); }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .toast-out { opacity: 0; transform: translateY(20px); transition: all 0.3s ease; }
 
         @media (max-width: 640px) {
-            .table-wrap table { font-size: 0.65rem; min-width: 480px; }
-            .table-wrap thead th, .table-wrap tbody td { padding: 0.4rem 0.5rem; }
-            .glass-card { padding: 0.8rem !important; }
-            .profile-dropdown .profile-menu { right: -10px; min-width: 180px; }
-            #toast-container { right: 0.8rem; bottom: 0.8rem; max-width: 300px; }
-            .btn-action { width: 26px; height: 26px; font-size: 0.7rem; }
+            .form-wrapper { padding: 1.5rem; border-radius: 1.5rem; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .coord-group { grid-template-columns: 1fr; }
+            .plans-grid { grid-template-columns: repeat(3, 1fr); }
         }
+        @media (max-width: 400px) { .plans-grid { grid-template-columns: 1fr 1fr; } }
         @media (prefers-reduced-motion: reduce) {
             * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
         }
     </style>
 </head>
 <body>
-    <!-- PRELOADER -->
-    <div id="app-preloader">
-        <div class="preloader-inner">
-            <div class="preloader-logo"><i class="fa-solid fa-network-wired"></i></div>
-            <div class="preloader-ring"></div>
-            <p class="preloader-text">Cargando Tecnicable...</p>
+
+    <div class="form-wrapper">
+        <div class="form-header">
+            <div class="logo-icon"><i class="fa-solid fa-wifi"></i></div>
+            <h2>TECNICABLE <span>CONEXIÓN</span></h2>
+            <p>Solicitud de servicio de Internet y TV</p>
         </div>
-    </div>
 
-    <!-- TOAST -->
-    <div id="toast-container" role="status" aria-live="polite"></div>
+        <form id="registroForm" novalidate>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="nombres"><i class="fa-regular fa-user"></i> Nombre(s) *</label>
+                    <input type="text" id="nombres" class="input-dark" placeholder="Ej. María" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellidos"><i class="fa-regular fa-user"></i> Apellidos *</label>
+                    <input type="text" id="apellidos" class="input-dark" placeholder="Ej. Pérez" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="cedula"><i class="fa-regular fa-id-card"></i> Cédula (CI) *</label>
+                    <input type="text" id="cedula" class="input-dark" placeholder="Ej. 12345678" inputmode="numeric" required>
+                </div>
+                <div class="form-group">
+                    <label for="correo"><i class="fa-regular fa-envelope"></i> Correo electrónico *</label>
+                    <input type="email" id="correo" class="input-dark" placeholder="cliente@correo.com" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="direccion"><i class="fa-regular fa-location-dot"></i> Dirección corta *</label>
+                <input type="text" id="direccion" class="input-dark" placeholder="Calle principal, casa #12" required>
+            </div>
+            <div class="form-group">
+                <label for="referencia"><i class="fa-regular fa-map-pin"></i> Punto de referencia *</label>
+                <input type="text" id="referencia" class="input-dark" placeholder="Cerca de la plaza, frente a la iglesia" required>
+            </div>
+            <div class="form-group">
+                <label for="coordenadas"><i class="fa-regular fa-globe"></i> Coordenadas *</label>
+                <div class="coord-group">
+                    <input type="text" id="coordenadas" class="input-dark" placeholder="Ej. 10.9543, -64.0124" required>
+                    <button type="button" class="btn-icon btn-green" id="btnUbicarme"><i class="fa-solid fa-location-crosshairs"></i> Ubicarme</button>
+                    <button type="button" class="btn-icon" id="btnToggleMapa"><i class="fa-solid fa-map-location-dot"></i> Ver mapa</button>
+                </div>
+                <div class="map-preview-wrap" id="mapPreviewWrap">
+                    <div id="mapPreview"></div>
+                    <p class="map-hint"><i class="fa-solid fa-hand-pointer"></i> Arrastra el marcador para ajustar la ubicación exacta.</p>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="sector"><i class="fa-regular fa-house"></i> Barrio / Sector *</label>
+                    <input type="text" id="sector" class="input-dark" placeholder="Ej. Los Cerros" required>
+                </div>
+                <div class="form-group">
+                    <label for="ciudad"><i class="fa-regular fa-city"></i> Ciudad / Municipio *</label>
+                    <input type="text" id="ciudad" class="input-dark" placeholder="Ej. Caracas" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="telefono1"><i class="fa-regular fa-phone"></i> Teléfono celular *</label>
+                    <input type="tel" id="telefono1" class="input-dark" placeholder="0412-1234567" inputmode="tel" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono2"><i class="fa-regular fa-phone"></i> Teléfono adicional</label>
+                    <input type="tel" id="telefono2" class="input-dark" placeholder="0424-7654321" inputmode="tel">
+                </div>
+            </div>
 
-    <!-- LOGIN -->
-    <div id="login-container" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" style="background:var(--bg-body);">
-        <div class="login-card w-full max-w-md p-6 relative">
-            <div class="top-bar absolute top-0 left-0 right-0"></div>
-            <div class="text-center mt-4">
-                <span class="inline-block bg-blue-600/10 text-blue-400 border border-blue-600/20 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Tecnicable C.A.</span>
-                <h2 class="text-2xl font-bold tracking-tight mt-3" style="color:var(--text-primary);">TECNICABLE <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">PRO</span></h2>
-                <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Monitoreo y Auditoría de Red</p>
+            <label style="display: block; margin: 0.5rem 0 0.3rem;"><i class="fa-regular fa-signal"></i> Plan de Internet *</label>
+            <div class="plans-grid" id="plansGrid">
+                <label class="plan-card"><input type="radio" name="plan" value="Basico" required><span class="plan-title">Básico</span><span class="plan-price">$30</span><span class="plan-desc">400 Mbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="Hogar"><span class="plan-title">Hogar</span><span class="plan-price">$35</span><span class="plan-desc">600 Mbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="Turbo"><span class="plan-title">Turbo</span><span class="plan-price">$40</span><span class="plan-desc">800 Mbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="VIP"><span class="plan-title">VIP</span><span class="plan-price">$45</span><span class="plan-desc">1 Gbps</span></label>
+                <label class="plan-card"><input type="radio" name="plan" value="Solo TV"><span class="plan-title">Solo TV</span><span class="plan-price">$10</span><span class="plan-desc">TV</span></label>
             </div>
-            <div id="error-msg" class="hidden mt-3 p-2.5 bg-red-950/40 border border-red-800/60 text-red-400 text-xs rounded-xl"></div>
-            <form id="login-form" class="mt-5 space-y-3">
-                <div>
-                    <label class="block text-xs uppercase tracking-wider font-medium" style="color:var(--text-secondary);">Usuario / Correo</label>
-                    <input type="text" id="email" required placeholder="usuario@tecnicable.com" autocomplete="username" class="input-dark" />
-                </div>
-                <div>
-                    <label class="block text-xs uppercase tracking-wider font-medium" style="color:var(--text-secondary);">Contraseña</label>
-                    <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password" class="input-dark" />
-                </div>
-                <button type="submit" id="btn-login-submit" class="btn-primary w-full flex items-center justify-center gap-2">
-                    <i id="login-spinner" class="fa-solid fa-circle-notch spinner hidden"></i>
-                    <span id="login-btn-label">Entrar al Sistema</span>
-                </button>
-            </form>
-            <div class="relative flex items-center my-4">
-                <div class="flex-grow border-t" style="border-color:var(--border-color);"></div>
-                <span class="flex-shrink mx-3 text-[10px] uppercase tracking-wider" style="color:var(--text-muted);">o</span>
-                <div class="flex-grow border-t" style="border-color:var(--border-color);"></div>
+
+            <div class="form-group" style="margin-top: 1.2rem;">
+                <label for="fileInput"><i class="fa-regular fa-image"></i> Foto de la Cédula (frente) *</label>
+                <input type="file" id="fileInput" class="input-dark" accept="image/*" required>
             </div>
-            <button id="btn-google-login" type="button" class="w-full bg-white hover:bg-zinc-100 text-gray-900 font-medium py-2 rounded-xl transition-all text-sm flex items-center justify-center gap-3 shadow-sm cursor-pointer active:scale-95">
-                <i class="fa-brands fa-google text-red-500 text-base"></i> Cuenta de Google
+
+            <div class="form-group">
+                <label for="promotor"><i class="fa-regular fa-id-badge"></i> Promotor responsable *</label>
+                <select id="promotor" class="input-dark" required>
+                    <option value="">Cargando promotores...</option>
+                </select>
+            </div>
+
+            <button type="submit" class="submit-btn" id="sendBtn">
+                <i class="fa-regular fa-paper-plane"></i> Enviar Solicitud
             </button>
-        </div>
+        </form>
     </div>
 
-    <!-- MODAL VINCULACIÓN (mejorado) -->
-    <div id="modal-vincular" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
-        <div class="glass-card rounded-2xl max-w-md w-full p-6 shadow-2xl relative modal-content">
-            <div class="text-center mb-4">
-                <h3 class="font-bold text-lg" style="color:var(--text-primary);">Vinculación de Promotor</h3>
-                <p class="text-xs mt-1" style="color:var(--text-secondary);">Completa tus datos para continuar.</p>
-            </div>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Nombre completo</label>
-                    <input type="text" id="vinculacion-nombre" placeholder="Ej: Juan Pérez" class="input-dark" />
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Cédula de identidad</label>
-                    <input type="text" id="vinculacion-cedula" placeholder="Ej: 12345678" class="input-dark" />
-                </div>
-                <div id="vinculacion-password-group" class="hidden">
-                    <div>
-                        <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Contraseña (para login sin Google)</label>
-                        <input type="password" id="vinculacion-password" placeholder="Mínimo 6 caracteres" class="input-dark" />
-                    </div>
-                    <div>
-                        <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Confirmar contraseña</label>
-                        <input type="password" id="vinculacion-password-confirm" placeholder="Repite la contraseña" class="input-dark" />
-                    </div>
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Teléfono (opcional)</label>
-                    <input type="text" id="vinculacion-telefono" placeholder="0412-1234567" class="input-dark" />
-                </div>
-                <div id="vinculacion-error" class="hidden text-red-400 text-xs mt-1"></div>
-            </div>
-            <div class="mt-5 pt-3 border-t flex justify-end gap-2" style="border-color:var(--border-color);">
-                <button id="btn-vincular-guardar" class="btn-primary">Guardar y continuar</button>
-            </div>
-        </div>
-    </div>
+    <div id="toast-container" class="toast-container"></div>
 
-    <!-- APP PRINCIPAL -->
-    <div id="app-container" class="flex h-screen overflow-hidden hidden">
-        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
-
-        <aside id="sidebar" class="sidebar">
-            <div class="flex items-center justify-between h-14 px-4" style="border-bottom:1px solid var(--border-color);">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-network-wired text-blue-500 text-xl"></i>
-                    <span class="font-bold text-sm tracking-wider" style="color:var(--text-primary);">TECNICABLE <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 text-[10px]">PRO</span></span>
-                </div>
-                <button class="md:hidden text-gray-400 hover:text-white text-lg" onclick="toggleSidebar(false)">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <nav class="flex-1 overflow-y-auto p-3 space-y-0.5 custom-scrollbar" id="sidebar-nav">
-                <button data-seccion="dashboard" class="nav-btn active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium cursor-pointer">
-                    <i class="fa-solid fa-chart-pie w-4 text-sm"></i> Dashboard
-                </button>
-                <button data-seccion="ingresados" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium cursor-pointer">
-                    <i class="fa-solid fa-list w-4 text-sm"></i> Todos los registros
-                </button>
-                <button data-seccion="web" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium cursor-pointer">
-                    <i class="fa-solid fa-globe w-4 text-sm"></i> Contratos Web
-                </button>
-                <button data-seccion="completados" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium cursor-pointer">
-                    <i class="fa-solid fa-check-double w-4 text-sm"></i> Completados
-                </button>
-                <button data-seccion="promotores" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium cursor-pointer">
-                    <i class="fa-solid fa-id-card-clip w-4 text-sm"></i> Promotores
-                </button>
-                <button data-seccion="censo" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium cursor-pointer">
-                    <i class="fa-solid fa-map-location-dot w-4 text-sm"></i> Censo
-                </button>
-                <button data-seccion="rastreo" id="btn-rastreo" class="nav-btn hidden w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium cursor-pointer">
-                    <i class="fa-solid fa-satellite-dish w-4 text-sm"></i> Rastreo GPS
-                </button>
-            </nav>
-            <div class="p-3 border-t flex text-xs justify-end md:hidden" style="border-color:var(--border-color);">
-                <button id="btn-logout-sidebar" class="text-red-400 hover:text-red-300 cursor-pointer p-1.5 rounded-lg hover:bg-red-950/30 transition-colors flex items-center gap-1.5">
-                    <i class="fa-solid fa-right-from-bracket text-xs"></i> Cerrar sesión
-                </button>
-            </div>
-        </aside>
-
-        <div class="flex-1 flex flex-col overflow-hidden min-w-0" style="background:var(--bg-body);">
-            <header class="h-14 flex items-center justify-between px-4 sticky top-0 z-20 shrink-0 gap-2" style="background:var(--bg-header); backdrop-filter:blur(8px); border-bottom:1px solid var(--border-color);">
-                <div class="flex items-center gap-2 min-w-0">
-                    <button class="hamburger-btn md:hidden" onclick="toggleSidebar(true)" aria-label="Abrir menú" style="background:transparent; border:none; color:var(--text-primary); font-size:1.4rem; cursor:pointer; padding:0.2rem 0.4rem; border-radius:0.4rem; transition:background 0.15s;">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <h1 id="seccion-titulo" class="font-bold text-lg tracking-tight truncate" style="color:var(--text-primary);">Dashboard General</h1>
-                </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
-                    <button id="theme-toggle" class="theme-toggle" title="Cambiar tema">
-                        <i class="fa-solid fa-moon"></i>
-                    </button>
-                    <div class="profile-dropdown" id="profile-dropdown">
-                        <div class="flex items-center gap-1.5 cursor-pointer" onclick="toggleProfileMenu()">
-                            <img id="user-avatar" src="" alt="Avatar" class="w-8 h-8 rounded-full border-2 object-cover hidden" style="border-color:var(--accent);" />
-                            <span id="user-name-display" class="text-sm font-medium hidden truncate max-w-[90px]" style="color:var(--text-primary);"></span>
-                            <i class="fa-solid fa-chevron-down text-[10px]" style="color:var(--text-muted);"></i>
-                        </div>
-                        <div class="profile-menu" id="profile-menu">
-                            <div class="profile-header">
-                                <img id="profile-avatar" src="" alt="Avatar" />
-                                <div>
-                                    <div class="font-semibold text-sm" style="color:var(--text-primary);" id="profile-name">Usuario</div>
-                                    <div class="text-xs" style="color:var(--text-secondary);" id="profile-email">correo@ejemplo.com</div>
-                                </div>
-                            </div>
-                            <div class="profile-actions">
-                                <button onclick="abrirPerfil()"><i class="fa-regular fa-user"></i> Mi perfil</button>
-                                <button id="btn-logout-header" class="text-red"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="flex-1 overflow-y-auto p-4 space-y-4 max-w-7xl w-full mx-auto custom-scrollbar">
-
-                <!-- DASHBOARD -->
-                <div id="view-dashboard" class="seccion-view space-y-4">
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="glass-card rounded-2xl p-5 shadow-lg" style="border-left:4px solid var(--accent);">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-[10px] uppercase tracking-wider font-semibold" style="color:var(--text-secondary);">Total</p>
-                                    <h3 id="stat-dash-total" class="text-2xl md:text-3xl font-black mt-1" style="color:var(--text-primary);">0</h3>
-                                </div>
-                                <div class="p-3 rounded-full" style="background:rgba(13,148,136,0.1);">
-                                    <i class="fa-solid fa-database text-xl" style="color:var(--accent);"></i>
-                                </div>
-                            </div>
-                            <span class="text-[8px] font-medium" style="color:var(--accent);"><i class="fa-solid fa-check-circle mr-0.5"></i>Firestore</span>
-                        </div>
-                        <div class="glass-card rounded-2xl p-5 shadow-lg" style="border-left:4px solid #06b6d4;">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-[10px] uppercase tracking-wider font-semibold" style="color:var(--text-secondary);">Promotores</p>
-                                    <h3 id="stat-dash-promotores" class="text-2xl md:text-3xl font-black mt-1" style="color:var(--text-primary);">0</h3>
-                                </div>
-                                <div class="p-3 rounded-full" style="background:rgba(6,182,212,0.1);">
-                                    <i class="fa-solid fa-users text-cyan-400 text-xl"></i>
-                                </div>
-                            </div>
-                            <span class="text-[8px] text-cyan-400 font-medium"><i class="fa-solid fa-id-card mr-0.5"></i>Activos</span>
-                        </div>
-                        <div class="glass-card rounded-2xl p-5 shadow-lg" style="border-left:4px solid #f59e0b;">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-[10px] uppercase tracking-wider font-semibold" style="color:var(--text-secondary);">Estados</p>
-                                    <h3 id="stat-dash-estados" class="text-2xl md:text-3xl font-black mt-1" style="color:var(--text-primary);">0</h3>
-                                </div>
-                                <div class="p-3 rounded-full" style="background:rgba(245,158,11,0.1);">
-                                    <i class="fa-solid fa-tags text-amber-400 text-xl"></i>
-                                </div>
-                            </div>
-                            <span class="text-[8px] text-amber-400 font-medium"><i class="fa-solid fa-rotate mr-0.5"></i>Variados</span>
-                        </div>
-                        <div class="glass-card rounded-2xl p-5 shadow-lg" style="border-left:4px solid #8b5cf6;">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-[10px] uppercase tracking-wider font-semibold" style="color:var(--text-secondary);">Planes</p>
-                                    <h3 id="stat-dash-planes" class="text-2xl md:text-3xl font-black mt-1" style="color:var(--text-primary);">0</h3>
-                                </div>
-                                <div class="p-3 rounded-full" style="background:rgba(139,92,246,0.1);">
-                                    <i class="fa-solid fa-wifi text-purple-400 text-xl"></i>
-                                </div>
-                            </div>
-                            <span class="text-[8px] text-purple-400 font-medium"><i class="fa-solid fa-signal mr-0.5"></i>Activos</span>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg">
-                        <div class="flex items-center justify-between mb-3 pb-2" style="border-bottom:1px solid var(--border-color);">
-                            <h3 class="font-bold text-xs tracking-wider uppercase flex items-center gap-2" style="color:var(--text-primary);">
-                                <i class="fa-solid fa-clock-rotate-left" style="color:var(--accent);"></i> Últimos 10
-                            </h3>
-                            <span class="text-[10px] flex items-center gap-1" style="color:var(--text-secondary);">
-                                <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span> En vivo
-                            </span>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Cliente</th><th>Plan</th><th>Promotor</th><th>Estado</th><th>Método</th><th>Fecha</th></tr></thead>
-                                <tbody id="tabla-recientes-body"><tr><td colspan="6" class="text-center py-4 text-xs" style="color:var(--text-muted);">Cargando...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- INGRESADOS -->
-                <div id="view-ingresados" class="seccion-view space-y-4 hidden">
-                    <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-3">
-                        <div class="flex items-center gap-3 w-full md:w-auto">
-                            <div class="w-10 h-10 bg-emerald-600/10 border border-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400 text-lg shrink-0">
-                                <i class="fa-solid fa-list"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-sm" style="color:var(--text-primary);">Todos los registros</h3>
-                                <p class="text-[10px]" style="color:var(--text-secondary);">Contratos y prospectos</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                            <select id="filtro-promotor-app" class="input-dark w-full md:w-40">
-                                <option value="">Todos los promotores</option>
-                            </select>
-                            <input type="text" id="busqueda-ingresados" placeholder="Buscar..." class="input-dark w-full md:w-48" />
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs" style="color:var(--text-secondary);">Total: <strong id="stat-ing-total" class="text-emerald-400">0</strong></span>
-                        </div>
-                        <div class="table-wrap max-h-[420px] overflow-y-auto custom-scrollbar">
-                            <table>
-                                <thead><tr><th>Cliente / Cédula</th><th>Sector</th><th>Plan</th><th>Promotor</th><th>Estado</th><th>Método</th><th>Fecha</th></tr></thead>
-                                <tbody id="tabla-ingresados-body"><tr><td colspan="7" class="text-center py-4 text-xs" style="color:var(--text-muted);">Cargando...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- WEB -->
-                <div id="view-web" class="seccion-view space-y-4 hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="glass-card rounded-2xl p-5 shadow-lg" style="border-left:4px solid #06b6d4;">
-                            <p class="text-[10px] uppercase font-semibold" style="color:var(--text-secondary);">Contratos Web</p>
-                            <h3 id="stat-web-total" class="text-2xl font-black mt-1" style="color:#06b6d4;">0</h3>
-                        </div>
-                        <div class="glass-card rounded-2xl p-5 shadow-lg md:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                            <div>
-                                <h4 class="font-bold text-[10px] tracking-wider uppercase" style="color:var(--text-primary);">Filtrar</h4>
-                                <p class="text-[10px]" style="color:var(--text-secondary);">Por promotor y estado</p>
-                            </div>
-                            <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                                <select id="filtro-promotor-web" class="input-dark w-full sm:w-36">
-                                    <option value="">Todos los promotores</option>
-                                </select>
-                                <select id="filtro-estado-web" class="input-dark w-full sm:w-36">
-                                    <option value="">Todos los estados</option>
-                                    <option value="Pendiente">Pendiente</option>
-                                    <option value="En Proceso">En Proceso</option>
-                                    <option value="Procesado">Procesado</option>
-                                    <option value="Completado">Completado</option>
-                                    <option value="Cancelado">Cancelado</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg">
-                        <div class="table-wrap max-h-[420px] overflow-y-auto custom-scrollbar">
-                            <table>
-                                <thead><tr><th>Cliente / Cédula</th><th>Sector</th><th>Plan</th><th>Promotor</th><th>Estado</th><th>Método</th><th>Fecha</th><th class="text-center">Acciones</th></tr></thead>
-                                <tbody id="tabla-web-body"><tr><td colspan="8" class="text-center py-4 text-xs" style="color:var(--text-muted);">Cargando...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- COMPLETADOS -->
-                <div id="view-completados" class="seccion-view space-y-4 hidden">
-                    <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-green-600/10 border border-green-500/20 rounded-xl flex items-center justify-center text-green-400 text-lg shrink-0">
-                                <i class="fa-solid fa-check-double"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-sm" style="color:var(--text-primary);">Contratos Completados</h3>
-                                <p class="text-[10px]" style="color:var(--text-secondary);">Estado "Completado"</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                            <select id="filtro-promotor-completados" class="input-dark w-full md:w-40">
-                                <option value="">Todos los promotores</option>
-                            </select>
-                            <input type="text" id="busqueda-completados" placeholder="Buscar..." class="input-dark w-full md:w-44" />
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs" style="color:var(--text-secondary);">Total: <strong id="stat-completados-total" class="text-green-400">0</strong></span>
-                        </div>
-                        <div class="table-wrap max-h-[420px] overflow-y-auto custom-scrollbar">
-                            <table>
-                                <thead><tr><th>Cliente / Cédula</th><th>Sector</th><th>Plan</th><th>Promotor</th><th>Método</th><th>Fecha</th><th class="text-center">Acciones</th></tr></thead>
-                                <tbody id="tabla-completados-body"><tr><td colspan="7" class="text-center py-4 text-xs" style="color:var(--text-muted);">Cargando...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PROMOTORES -->
-                <div id="view-promotores" class="seccion-view space-y-4 hidden">
-                    <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div>
-                            <h3 class="font-bold text-[10px] tracking-wider uppercase" style="color:var(--text-primary);">Rendimiento por Asesor</h3>
-                            <p class="text-[10px]" style="color:var(--text-secondary);">Selecciona un promotor</p>
-                        </div>
-                        <select id="select-detalle-promotor" class="input-dark w-full sm:w-56">
-                            <option value="">Todos los promotores</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="promotores-ranking-grid">
-                        <p class="col-span-full text-center py-4 text-xs" style="color:var(--text-muted);">Generando ranking...</p>
-                    </div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg">
-                        <div class="flex items-center justify-between mb-3 pb-2" style="border-bottom:1px solid var(--border-color);">
-                            <h3 id="titulo-tabla-promotor" class="font-bold text-[10px] tracking-wider uppercase flex items-center gap-2" style="color:var(--text-primary);">
-                                <i class="fa-solid fa-list-check text-purple-400"></i> Registros: <span class="text-purple-400 font-mono">Todos</span>
-                            </h3>
-                            <span class="text-xs" style="color:var(--text-secondary);">Total: <strong id="contador-promotor-sel" style="color:var(--text-primary);">0</strong></span>
-                        </div>
-                        <div class="table-wrap max-h-[380px] overflow-y-auto custom-scrollbar">
-                            <table>
-                                <thead><tr><th>Cliente</th><th>Cédula</th><th>Sector</th><th>Plan</th><th>Estado</th><th>Método</th><th>Fecha</th><th class="text-center">Acciones</th></tr></thead>
-                                <tbody id="tabla-promotores-body"><tr><td colspan="8" class="text-center py-4 text-xs" style="color:var(--text-muted);">Selecciona un promotor</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CENSO -->
-                <div id="view-censo" class="seccion-view space-y-4 hidden">
-                    <div id="censo-resumen-promotores" class="grid grid-cols-2 sm:grid-cols-4 gap-4"></div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-3">
-                        <div>
-                            <h3 class="font-bold text-[10px] tracking-wider uppercase" style="color:var(--text-primary);">Censo de Prospectos</h3>
-                            <p class="text-[10px]" style="color:var(--text-secondary);">Control geográfico</p>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                            <select id="filtro-promotor-censo" class="input-dark w-full md:w-40">
-                                <option value="">Todos los promotores</option>
-                            </select>
-                            <select id="filtro-estado-censo" class="input-dark w-full md:w-40">
-                                <option value="">Todos los estados</option>
-                                <option value="Prospecto">Prospecto</option>
-                                <option value="Contactado">Contactado</option>
-                                <option value="Interesado">Interesado</option>
-                                <option value="No Interesado">No Interesado</option>
-                                <option value="Convertido">Convertido</option>
-                                <option value="Procesado">Procesado</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs" style="color:var(--text-secondary);">Total: <strong id="stat-censo-total" class="text-amber-400">0</strong></span>
-                        </div>
-                        <div class="table-wrap max-h-[420px] overflow-y-auto custom-scrollbar">
-                            <table>
-                                <thead><tr><th>Ciudadano / Cédula</th><th>Sector</th><th>Promotor</th><th>Estado</th><th>Método</th><th>Fecha</th><th class="text-center">Acciones</th></tr></thead>
-                                <tbody id="tabla-censo-body"><tr><td colspan="7" class="text-center py-4 text-xs" style="color:var(--text-muted);">Cargando...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- RASTREO -->
-                <div id="view-rastreo" class="seccion-view space-y-4 hidden">
-                    <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col md:flex-row items-center justify-between gap-3">
-                        <div>
-                            <h3 class="font-bold text-[10px] tracking-wider uppercase" style="color:var(--text-primary);">📍 Rastreo GPS en Tiempo Real</h3>
-                            <p class="text-[10px]" style="color:var(--text-secondary);">Ubicación de promotores</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs" style="color:var(--text-secondary);">Activos: <strong id="stat-rastreo-total" class="text-cyan-400">0</strong></span>
-                            <button id="btn-centrar-mapa" class="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all inline-flex items-center gap-1" style="background:rgba(13,148,136,0.15); color:var(--accent); border:1px solid rgba(13,148,136,0.2);">
-                                <i class="fa-solid fa-crosshairs"></i> Centrar
-                            </button>
-                        </div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-4 shadow-lg">
-                        <div id="mapa-rastreo"></div>
-                    </div>
-                    <div class="glass-card rounded-2xl p-5 shadow-lg">
-                        <div class="table-wrap max-h-[320px] overflow-y-auto custom-scrollbar">
-                            <table>
-                                <thead><tr><th>Promotor</th><th>Latitud</th><th>Longitud</th><th>Última act.</th><th class="text-center">Acción</th></tr></thead>
-                                <tbody id="tabla-rastreo-body"><tr><td colspan="5" class="text-center py-4 text-xs" style="color:var(--text-muted);">Cargando...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
-        </div>
-    </div>
-
-    <!-- ========== MODALES ========== -->
-
-    <!-- MODAL DETALLE -->
-    <div id="modal-detalle" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-card rounded-2xl max-w-2xl w-full shadow-2xl relative modal-content overflow-hidden">
-            <button onclick="cerrarModalDetalle()" class="detalle-close-btn" aria-label="Cerrar">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <div id="modal-detalle-hero" class="detalle-hero"></div>
-            <div class="px-5 pb-5 -mt-8 relative z-10">
-                <div class="flex items-end gap-3 mb-4">
-                    <div id="modal-detalle-avatar" class="detalle-avatar"></div>
-                    <div class="flex-1 min-w-0 pb-1">
-                        <h3 id="modal-detalle-titulo" class="font-bold text-base leading-tight truncate" style="color:var(--text-primary);">Detalle</h3>
-                        <div id="modal-detalle-badges" class="detalle-badges flex flex-wrap gap-1.5 mt-1"></div>
-                    </div>
-                </div>
-                <div id="modal-detalle-contenido" class="detalle-grid max-h-[42vh] overflow-y-auto custom-scrollbar pr-1"></div>
-                <div id="modal-detalle-fotos"></div>
-                <div class="mt-4 pt-3 text-right" style="border-top:1px solid var(--border-color);">
-                    <button onclick="cerrarModalDetalle()" class="btn-ghost">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL VISOR DE FOTO (lightbox) -->
-    <div id="modal-foto" class="fixed inset-0 z-[60] hidden items-center justify-center p-4" onclick="cerrarModalFoto()">
-        <button onclick="cerrarModalFoto()" class="absolute top-4 right-4 text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
-            <i class="fa-solid fa-xmark text-2xl"></i>
-        </button>
-        <img id="modal-foto-img" src="" alt="Foto del cliente" onclick="event.stopPropagation();" />
-    </div>
-
-    <!-- MODAL EDITAR CENSO -->
-    <div id="modal-editar-censo" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="glass-card rounded-2xl max-w-md w-full p-5 shadow-2xl relative modal-content">
-            <div class="flex items-center justify-between pb-2" style="border-bottom:1px solid var(--border-color); margin-bottom:0.75rem;">
-                <h3 id="edit-censo-titulo" class="font-bold text-sm flex items-center gap-2" style="color:var(--text-primary);">
-                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> <span id="edit-censo-titulo-texto">Editar</span>
-                </h3>
-                <button onclick="cerrarModalEditarCenso()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <input type="hidden" id="edit-censo-id" />
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Estado</label>
-                    <select id="edit-censo-estado" class="input-dark">
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="En Proceso">En Proceso</option>
-                        <option value="Procesado">Procesado</option>
-                        <option value="Completado">Completado</option>
-                        <option value="Cancelado">Cancelado</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Notas</label>
-                    <textarea id="edit-censo-notas" rows="3" placeholder="Observaciones..." class="input-dark resize-none"></textarea>
-                </div>
-            </div>
-            <div class="mt-4 pt-2 flex justify-end gap-2" style="border-top:1px solid var(--border-color);">
-                <button onclick="cerrarModalEditarCenso()" class="btn-ghost">Cancelar</button>
-                <button onclick="guardarEdicionCenso()" class="btn-primary">Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PERFIL -->
-    <div id="modal-perfil" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
-        <div class="glass-card rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative modal-content max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid var(--border-color); margin-bottom:1rem;">
-                <h3 class="font-bold text-sm flex items-center gap-2" style="color:var(--text-primary);">
-                    <i class="fa-solid fa-user" style="color:var(--accent);"></i> Mi Perfil
-                </h3>
-                <button onclick="cerrarPerfil()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="flex flex-col md:flex-row items-center md:items-start gap-6 mb-6 pb-4" style="border-bottom:1px solid var(--border-color);">
-                <img id="perfil-avatar" src="" alt="Avatar" class="w-24 h-24 rounded-full object-cover" style="border:2px solid var(--accent);" />
-                <div class="flex-1 text-center md:text-left">
-                    <h4 id="perfil-nombre" class="font-bold text-lg" style="color:var(--text-primary);">Usuario</h4>
-                    <p id="perfil-email" class="text-sm" style="color:var(--text-secondary);">correo@ejemplo.com</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-2 text-xs" style="color:var(--text-secondary);">
-                        <p id="perfil-cedula">Cédula: --</p>
-                        <p id="perfil-telefono">Teléfono: --</p>
-                        <p id="perfil-direccion">Dirección: --</p>
-                        <p id="perfil-rol">Rol: Promotor</p>
-                    </div>
-                    <button onclick="abrirEditarPerfil()" class="btn-primary text-sm mt-3 inline-flex items-center gap-2">
-                        <i class="fa-regular fa-pen-to-square"></i> Editar mi perfil
-                    </button>
-                </div>
-            </div>
-
-            <div id="admin-usuarios-section" class="hidden">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-bold text-sm" style="color:var(--text-primary);">
-                        <i class="fa-solid fa-users-gear mr-2" style="color:var(--accent);"></i> Gestión de Usuarios
-                    </h4>
-                    <span class="text-xs" style="color:var(--text-secondary);">Total: <strong id="stat-usuarios-total" class="text-blue-400">0</strong></span>
-                </div>
-                <div class="table-wrap max-h-[300px] overflow-y-auto custom-scrollbar">
-                    <table>
-                        <thead><tr><th>Nombre</th><th>Email</th><th>Cédula</th><th>Teléfono</th><th>Rol</th><th class="text-center">Acciones</th></tr></thead>
-                        <tbody id="tabla-usuarios-body"><tr><td colspan="6" class="text-center py-4 text-xs" style="color:var(--text-muted);">Cargando usuarios...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="mt-4 pt-3 text-right" style="border-top:1px solid var(--border-color);">
-                <button onclick="cerrarPerfil()" class="btn-ghost">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL EDITAR PERFIL -->
-    <div id="modal-editar-perfil" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
-        <div class="glass-card rounded-2xl max-w-md w-full p-6 shadow-2xl relative modal-content">
-            <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid var(--border-color); margin-bottom:1rem;">
-                <h3 class="font-bold text-sm flex items-center gap-2" style="color:var(--text-primary);">
-                    <i class="fa-solid fa-user-pen" style="color:var(--accent);"></i> Editar Perfil
-                </h3>
-                <button onclick="cerrarEditarPerfil()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="space-y-3 text-xs">
-                <div class="text-center">
-                    <img id="edit-perfil-avatar-preview" src="" alt="Avatar" class="w-20 h-20 rounded-full mx-auto object-cover cursor-pointer" style="border:2px solid var(--accent);" onclick="document.getElementById('edit-perfil-foto').click();" />
-                    <input type="file" id="edit-perfil-foto" accept="image/*" class="hidden" />
-                    <p class="text-[10px] mt-1" style="color:var(--text-secondary);">Haz clic en la imagen para cambiarla</p>
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Nombre completo</label>
-                    <input type="text" id="edit-perfil-nombre" class="input-dark" />
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Teléfono</label>
-                    <input type="text" id="edit-perfil-telefono" class="input-dark" placeholder="0412-1234567" />
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Dirección</label>
-                    <input type="text" id="edit-perfil-direccion" class="input-dark" placeholder="Calle, ciudad, estado" />
-                </div>
-                <div id="edit-perfil-error" class="hidden text-red-400 text-xs mt-1"></div>
-            </div>
-            <div class="mt-4 pt-3 flex justify-end gap-2" style="border-top:1px solid var(--border-color);">
-                <button onclick="cerrarEditarPerfil()" class="btn-ghost">Cancelar</button>
-                <button onclick="guardarEditarPerfil()" class="btn-primary">Guardar cambios</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL EDITAR USUARIO -->
-    <div id="modal-editar-usuario" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
-        <div class="glass-card rounded-2xl max-w-md w-full p-6 shadow-2xl relative modal-content">
-            <div class="flex items-center justify-between pb-3" style="border-bottom:1px solid var(--border-color); margin-bottom:1rem;">
-                <h3 class="font-bold text-sm flex items-center gap-2" style="color:var(--text-primary);">
-                    <i class="fa-solid fa-user-gear" style="color:var(--accent);"></i> Editar Usuario
-                </h3>
-                <button onclick="cerrarModalEditarUsuario()" class="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <input type="hidden" id="edit-usuario-uid" />
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Nombre completo</label>
-                    <input type="text" id="edit-usuario-nombre" class="input-dark" />
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Teléfono</label>
-                    <input type="text" id="edit-usuario-telefono" class="input-dark" placeholder="0412-1234567" />
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Dirección</label>
-                    <input type="text" id="edit-usuario-direccion" class="input-dark" placeholder="Calle, ciudad, estado" />
-                </div>
-                <div>
-                    <label class="block uppercase font-semibold mb-1" style="color:var(--text-secondary);">Rol</label>
-                    <select id="edit-usuario-rol" class="input-dark">
-                        <option value="promotor">Promotor</option>
-                        <option value="administrador">Administrador</option>
-                    </select>
-                </div>
-                <div id="edit-usuario-error" class="hidden text-red-400 text-xs mt-1"></div>
-            </div>
-            <div class="mt-4 pt-3 flex justify-end gap-2" style="border-top:1px solid var(--border-color);">
-                <button onclick="cerrarModalEditarUsuario()" class="btn-ghost">Cancelar</button>
-                <button onclick="guardarEditarUsuario()" class="btn-primary">Guardar cambios</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== FIREBASE ========== -->
     <script type="importmap">
         {
             "imports": {
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-                "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
-                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
-                "firebase/database": "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js",
-                "firebase/storage": "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js"
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"
             }
         }
     </script>
 
     <script type="module">
         import { initializeApp } from "firebase/app";
-        import {
-            getAuth,
-            onAuthStateChanged,
-            signInWithEmailAndPassword,
-            signInWithPopup,
-            GoogleAuthProvider,
-            signOut,
-            updateProfile,
-            sendPasswordResetEmail,
-            setPersistence,
-            browserLocalPersistence,
-            EmailAuthProvider,
-            linkWithCredential
-        } from "firebase/auth";
-        import {
-            getFirestore,
-            collection,
-            onSnapshot,
-            doc,
-            getDoc,
-            setDoc,
-            updateDoc,
-            deleteDoc,
-            serverTimestamp,
-            Timestamp
-        } from "firebase/firestore";
-        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+        import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAXWVUw7b1B0IICyAU_wlYjYxdkYxMTm_E",
@@ -1381,1615 +338,261 @@
             projectId: "tecnicable-e00d3",
             storageBucket: "tecnicable-e00d3.firebasestorage.app",
             messagingSenderId: "830462237822",
-            appId: "1:830462237822:web:9bf4b9c827ebee057c8c2f",
-            measurementId: "G-1J28N8HHXV",
-            databaseURL: "https://tecnicable-e00d3-default-rtdb.firebaseio.com"
+            appId: "1:830462237822:web:9bf4b9c827ebee057c8c2f"
         };
-        const DOMINIO_INTERNO = "tecnicable.com";
-        const ADMIN_EMAILS = ['admin@tecnicable.com', 'supervisor@tecnicable.com', 'luifred1998@gmail.com'];
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
-        const googleProvider = new GoogleAuthProvider();
 
-        setPersistence(auth, browserLocalPersistence).catch((err) => {
-            console.error('No se pudo establecer la persistencia de sesión:', err);
-        });
+        // --- DOM refs ---
+        const form = document.getElementById('registroForm');
+        const btn = document.getElementById('sendBtn');
+        const promotorSelect = document.getElementById('promotor');
+        const toastContainer = document.getElementById('toast-container');
+        const coordInput = document.getElementById('coordenadas');
+        const fileInput = document.getElementById('fileInput');
+        const mapWrap = document.getElementById('mapPreviewWrap');
+        const btnToggleMapa = document.getElementById('btnToggleMapa');
 
-        // ========== FUNCIONES HELPER MEJORADAS ==========
-        function getNombreCompleto(d) {
-            if (!d) return 'Sin nombre';
-            if (d.nombres && d.apellidos) {
-                return `${d.nombres} ${d.apellidos}`.trim();
-            }
-            if (d.nombre && d.apellido) {
-                return `${d.nombre} ${d.apellido}`.trim();
-            }
-            if (d.nombre) return d.nombre;
-            if (d.cliente) return d.cliente;
-            if (d.nombreCompleto) return d.nombreCompleto;
-            if (d.ciudadano) return d.ciudadano;
-            if (d.nombres) return d.nombres;
-            if (d.apellidos) return d.apellidos;
-            if (d.apellido) return d.apellido;
-            return 'Sin nombre';
-        }
+        const BTN_DEFAULT_HTML = '<i class="fa-regular fa-paper-plane"></i> Enviar Solicitud';
+        const BTN_SENDING_HTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+        const CENTRO_DEFECTO = [10.4806, -66.9036]; // Caracas, mismo centro usado en el panel de rastreo
 
-        function getCedula(d) {
-            if (!d) return '--';
-            return d.cedula || d.ced || d.ci || d.dni || d.identificacion || d.cedulaIdentidad || d.cedula_identidad || '--';
-        }
-
-        function formatearFecha(valor) {
-            if (!valor) return '--';
-            if (valor instanceof Timestamp || (typeof valor === 'object' && valor !== null && 'seconds' in valor && 'nanoseconds' in valor)) {
-                const date = new Date(valor.seconds * 1000 + valor.nanoseconds / 1000000);
-                return date.toLocaleString('es-VE', { hour12: false });
-            }
-            if (typeof valor === 'string') {
-                const date = new Date(valor);
-                if (!isNaN(date.getTime())) {
-                    return date.toLocaleString('es-VE', { hour12: false });
-                }
-                return valor;
-            }
-            if (typeof valor === 'number') {
-                const date = new Date(valor);
-                if (!isNaN(date.getTime())) {
-                    return date.toLocaleString('es-VE', { hour12: false });
-                }
-                return valor.toString();
-            }
-            return valor.toString();
-        }
-
-        function getFecha(d) {
-            const valor = d.fecha || d.creado || d.fecha_registro || d.fechaRegistro || null;
-            return formatearFecha(valor);
-        }
-
-        function esImagen(valor) {
-            if (typeof valor !== 'string') return false;
-            const v = valor.trim();
-            if (/^https?:\/\//i.test(v) && /\.(jpe?g|png|gif|webp|bmp)(\?.*)?$/i.test(v)) return true;
-            if (v.startsWith('data:image/')) return true;
-            return false;
-        }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        // ===== Metadatos de campos para el modal de detalle =====
-        const DETALLE_CAMPO_ICONOS = {
-            correo: 'fa-envelope', email: 'fa-envelope',
-            promotor: 'fa-user-tie',
-            direccion: 'fa-location-dot',
-            telefono1: 'fa-phone', telefono: 'fa-phone', telefono2: 'fa-phone', celular: 'fa-mobile-screen-button',
-            nombres: 'fa-id-card', nombre: 'fa-id-card', apellidos: 'fa-id-card', apellido: 'fa-id-card',
-            cedula: 'fa-address-card', ci: 'fa-address-card', dni: 'fa-address-card', identificacion: 'fa-address-card',
-            coordenadas: 'fa-map-pin', ubicacion: 'fa-map-pin',
-            notas: 'fa-note-sticky', origen: 'fa-tag', cliente: 'fa-user',
-            fecha: 'fa-calendar-days', creado: 'fa-calendar-days', actualizado: 'fa-calendar-days',
-            fecha_registro: 'fa-calendar-days', fechaRegistro: 'fa-calendar-days'
-        };
-        const DETALLE_CAMPO_LABELS = {
-            correo: 'Correo electrónico', email: 'Correo electrónico',
-            promotor: 'Promotor', direccion: 'Dirección',
-            telefono1: 'Teléfono principal', telefono: 'Teléfono', telefono2: 'Teléfono secundario', celular: 'Celular',
-            nombres: 'Nombres', nombre: 'Nombre', apellidos: 'Apellidos', apellido: 'Apellido',
-            cedula: 'Cédula', ci: 'Cédula', dni: 'Cédula', identificacion: 'Cédula',
-            coordenadas: 'Coordenadas', ubicacion: 'Ubicación',
-            notas: 'Notas', origen: 'Origen del registro', cliente: 'Cliente',
-            fecha: 'Fecha', creado: 'Fecha de creación', actualizado: 'Última actualización',
-            fecha_registro: 'Fecha de registro', fechaRegistro: 'Fecha de registro'
-        };
-        function iconoCampo(keyLower) {
-            return DETALLE_CAMPO_ICONOS[keyLower] || 'fa-circle-info';
-        }
-        function labelCampo(key) {
-            const keyLower = key.toLowerCase();
-            if (DETALLE_CAMPO_LABELS[keyLower]) return DETALLE_CAMPO_LABELS[keyLower];
-            return key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')
-                .replace(/^\w/, c => c.toUpperCase());
-        }
-        window.copiarAlPortapapeles = function(texto, etiqueta) {
-            if (!navigator.clipboard) {
-                mostrarToast('Tu navegador no permite copiar automáticamente', 'warning');
-                return;
-            }
-            navigator.clipboard.writeText(texto)
-                .then(() => mostrarToast(`${etiqueta} copiado al portapapeles`, 'success'))
-                .catch(() => mostrarToast('No se pudo copiar', 'error'));
-        };
-
-        // ========== RESTO DEL CÓDIGO (con adaptaciones) ==========
-
-        const loginContainer = document.getElementById('login-container');
-        const appContainer = document.getElementById('app-container');
-        const loginForm = document.getElementById('login-form');
-        const errorMsg = document.getElementById('error-msg');
-        const btnSubmit = document.getElementById('btn-login-submit');
-        const loginSpinner = document.getElementById('login-spinner');
-        const loginBtnLabel = document.getElementById('login-btn-label');
-        const btnLogoutSidebar = document.getElementById('btn-logout-sidebar');
-        const btnLogoutHeader = document.getElementById('btn-logout-header');
-        const modalVinculacion = document.getElementById('modal-vincular');
-        const vinculoNombre = document.getElementById('vinculacion-nombre');
-        const vinculoCedula = document.getElementById('vinculacion-cedula');
-        const vinculoPassword = document.getElementById('vinculacion-password');
-        const vinculoPasswordConfirm = document.getElementById('vinculacion-password-confirm');
-        const vinculoTelefono = document.getElementById('vinculacion-telefono');
-        const vinculoError = document.getElementById('vinculacion-error');
-        const btnVincularGuardar = document.getElementById('btn-vincular-guardar');
-        const vinculoPasswordGroup = document.getElementById('vinculacion-password-group');
-        const btnRastreo = document.getElementById('btn-rastreo');
-        const userAvatar = document.getElementById('user-avatar');
-        const userNameDisplay = document.getElementById('user-name-display');
-        const profileMenu = document.getElementById('profile-menu');
-        const profileAvatar = document.getElementById('profile-avatar');
-        const profileName = document.getElementById('profile-name');
-        const profileEmail = document.getElementById('profile-email');
-        const themeToggle = document.getElementById('theme-toggle');
-        const adminSection = document.getElementById('admin-usuarios-section');
-        const tablaUsuariosBody = document.getElementById('tabla-usuarios-body');
-        const statUsuariosTotal = document.getElementById('stat-usuarios-total');
-
-        let allDocs = [];
-        let previousIds = new Set();
-        let unsubscribeFirestore = null;
-        let unsubscribeCenso = null;
-        let unsubscribeClientesApp = null;
-        let unsubscribePortalWeb = null;
-        let registrosPorFuente = { censo: [], app: [], web: [] };
-        let unsubscribeUbicaciones = null;
-        let unsubscribeUsuarios = null;
-        let currentSection = 'dashboard';
-        let usuarioPromotor = null;
-        let usuarioUid = null;
-        let usuarioEmail = null;
-        let allUsers = [];
-        let usuariosPromotores = [];
-        let ubicacionesPromotores = [];
-        let mapa = null;
-        let marcadoresGrupo = null;
-        let tileLayer = null;
-        let currentUserData = {};
-        let isGoogleLogin = false;
-
+        // --- Toast ---
         function mostrarToast(mensaje, tipo = 'success') {
-            const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast toast-${tipo}`;
             const iconMap = { success: 'fa-circle-check', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation' };
             toast.innerHTML = `<i class="fa-solid ${iconMap[tipo] || iconMap.success}"></i><span>${mensaje}</span>`;
-            container.appendChild(toast);
+            toastContainer.appendChild(toast);
             setTimeout(() => {
                 toast.classList.add('toast-out');
                 setTimeout(() => toast.remove(), 350);
             }, 4000);
         }
 
-        function reproducirSonido() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.frequency.value = 880;
-                osc.type = 'sine';
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } catch (e) {}
+        // --- Mini mapa embebido (Leaflet) ---
+        let mapa = null;
+        let marcador = null;
+        let mapaVisible = false;
+
+        function parsearCoordenadas(texto) {
+            const partes = (texto || '').split(',').map(p => parseFloat(p.trim()));
+            if (partes.length === 2 && !isNaN(partes[0]) && !isNaN(partes[1])) return partes;
+            return null;
         }
 
-        function setTheme(theme) {
-            const body = document.body;
-            if (theme === 'light') {
-                body.classList.add('light-theme');
-                themeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
-                localStorage.setItem('theme', 'light');
-            } else {
-                body.classList.remove('light-theme');
-                themeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
-                localStorage.setItem('theme', 'dark');
-            }
-            if (tileLayer) {
-                const url = theme === 'light'
-                    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-                    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-                tileLayer.setUrl(url);
-            }
+        function actualizarInputDesdeMarcador(latlng) {
+            coordInput.value = `${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}`;
         }
 
-        function toggleTheme() {
-            const isLight = document.body.classList.contains('light-theme');
-            setTheme(isLight ? 'dark' : 'light');
-        }
-
-        themeToggle.addEventListener('click', toggleTheme);
-
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-
-        window.toggleSidebar = function(open) {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (open) {
-                sidebar.classList.add('open');
-                overlay.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            } else {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-        };
-
-        const navBtns = document.querySelectorAll('.nav-btn');
-        const views = {
-            dashboard: document.getElementById('view-dashboard'),
-            ingresados: document.getElementById('view-ingresados'),
-            web: document.getElementById('view-web'),
-            completados: document.getElementById('view-completados'),
-            promotores: document.getElementById('view-promotores'),
-            censo: document.getElementById('view-censo'),
-            rastreo: document.getElementById('view-rastreo')
-        };
-        const tituloSeccion = document.getElementById('seccion-titulo');
-
-        function cambiarSeccion(seccion) {
-            if (seccion === 'rastreo' && !ADMIN_EMAILS.includes(usuarioEmail)) {
-                seccion = 'dashboard';
-                mostrarToast('Acceso restringido a administradores', 'warning');
-            }
-            Object.values(views).forEach(v => v.classList.add('hidden'));
-            if (views[seccion]) views[seccion].classList.remove('hidden');
-            navBtns.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.nav-btn[data-seccion="${seccion}"]`)?.classList.add('active');
-            const titulos = {
-                dashboard: 'Dashboard General',
-                ingresados: 'Todos los registros',
-                web: 'Contratos Web',
-                completados: 'Contratos Completados',
-                promotores: 'Rendimiento de Promotores',
-                censo: 'Censo de Prospectos',
-                rastreo: '📍 Rastreo GPS'
-            };
-            tituloSeccion.innerText = titulos[seccion] || seccion;
-            currentSection = seccion;
-            sessionStorage.setItem('seccion', seccion);
-            if (seccion === 'rastreo') {
-                setTimeout(() => {
-                    if (!mapa) inicializarMapa();
-                    else {
-                        mapa.invalidateSize();
-                        if (marcadoresGrupo) {
-                            const bounds = [];
-                            marcadoresGrupo.eachLayer(m => bounds.push(m.getLatLng()));
-                            if (bounds.length) mapa.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
-                        }
-                    }
-                    renderizarRastreo();
-                }, 300);
-            }
-            if (window.innerWidth < 768) toggleSidebar(false);
-        }
-
-        navBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const seccion = btn.dataset.seccion;
-                if (seccion) cambiarSeccion(seccion);
-            });
-        });
-
-        function mostrarError(texto) { errorMsg.innerText = texto; errorMsg.classList.remove('hidden'); }
-        function ocultarError() { errorMsg.classList.add('hidden'); }
-        function setCargandoLogin(cargando) {
-            btnSubmit.disabled = cargando;
-            btnSubmit.classList.toggle('opacity-70', cargando);
-            loginSpinner.classList.toggle('hidden', !cargando);
-            loginBtnLabel.innerText = cargando ? 'Verificando...' : 'Entrar al Sistema';
-        }
-
-        function traducirErrorFirebase(codigo) {
-            const mapa = {
-                'auth/invalid-email': 'Formato de correo no válido.',
-                'auth/user-not-found': 'No existe una cuenta con ese usuario.',
-                'auth/wrong-password': 'Contraseña incorrecta.',
-                'auth/invalid-credential': 'Usuario o contraseña incorrectos.',
-                'auth/too-many-requests': 'Demasiados intentos. Intenta en unos minutos.',
-                'auth/network-request-failed': 'Error de conexión. Revisa tu internet.'
-            };
-            return mapa[codigo] || 'No se pudo iniciar sesión. Verifica tus datos.';
-        }
-
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            ocultarError();
-            let userInput = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            if (!userInput.includes('@')) userInput = `${userInput}@${DOMINIO_INTERNO}`;
-            setCargandoLogin(true);
-            try {
-                await signInWithEmailAndPassword(auth, userInput, password);
-                isGoogleLogin = false; // login con email/password
-            } catch (error) {
-                mostrarError(traducirErrorFirebase(error.code));
-            } finally {
-                setCargandoLogin(false);
-            }
-        });
-
-        document.getElementById('btn-google-login').addEventListener('click', async () => {
-            ocultarError();
-            try {
-                await signInWithPopup(auth, googleProvider);
-                isGoogleLogin = true; // login con Google
-            } catch (error) {
-                console.error('Error en Google login:', error);
-                mostrarError("Error al autenticar con Google.");
-            }
-        });
-
-        function cerrarSesion() {
-            signOut(auth);
-        }
-        btnLogoutSidebar.addEventListener('click', cerrarSesion);
-        btnLogoutHeader.addEventListener('click', cerrarSesion);
-
-        async function verificarVinculacion(uid, email) {
-            usuarioEmail = email;
-            try {
-                const docRef = doc(db, "usuarios", uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    usuarioPromotor = data.nombre;
-                    usuarioUid = uid;
-                    currentUserData = data;
-                    mostrarToast(`Bienvenido, ${usuarioPromotor}`, 'success');
-                    actualizarPerfilUI(auth.currentUser, data);
-                    modalVinculacion.classList.add('hidden');
-                } else {
-                    // Mostrar modal de vinculación
-                    modalVinculacion.classList.remove('hidden');
-                    // Limpiar errores
-                    vinculoError.classList.add('hidden');
-                    // Determinar si es login con Google
-                    const isGoogle = auth.currentUser?.providerData?.some(p => p.providerId === 'google.com') || false;
-                    if (isGoogle) {
-                        vinculoPasswordGroup.classList.remove('hidden');
-                    } else {
-                        vinculoPasswordGroup.classList.add('hidden');
-                    }
-                    // Guardar al hacer clic
-                    btnVincularGuardar.onclick = async () => {
-                        const nombre = vinculoNombre.value.trim();
-                        const cedula = vinculoCedula.value.trim();
-                        const telefono = vinculoTelefono.value.trim();
-                        const password = vinculoPassword.value;
-                        const passwordConfirm = vinculoPasswordConfirm.value;
-
-                        if (!nombre || !cedula) {
-                            vinculoError.innerText = 'Nombre y cédula son obligatorios.';
-                            vinculoError.classList.remove('hidden');
-                            return;
-                        }
-                        if (isGoogle) {
-                            if (password.length < 6) {
-                                vinculoError.innerText = 'La contraseña debe tener al menos 6 caracteres.';
-                                vinculoError.classList.remove('hidden');
-                                return;
-                            }
-                            if (password !== passwordConfirm) {
-                                vinculoError.innerText = 'Las contraseñas no coinciden.';
-                                vinculoError.classList.remove('hidden');
-                                return;
-                            }
-                        }
-                        vinculoError.classList.add('hidden');
-
-                        try {
-                            // Si es Google, vincular la credencial
-                            if (isGoogle) {
-                                const credential = EmailAuthProvider.credential(email, password);
-                                await linkWithCredential(auth.currentUser, credential);
-                            }
-
-                            // Guardar en Firestore
-                            const newData = {
-                                nombre,
-                                cedula,
-                                email,
-                                uid,
-                                telefono: telefono || '',
-                                direccion: '',
-                                rol: ADMIN_EMAILS.includes(email) ? 'administrador' : 'promotor',
-                                creado: serverTimestamp()
-                            };
-                            await setDoc(docRef, newData);
-                            usuarioPromotor = nombre;
-                            usuarioUid = uid;
-                            currentUserData = newData;
-                            mostrarToast(`Vinculación exitosa como ${nombre}`, 'success');
-                            modalVinculacion.classList.add('hidden');
-                            actualizarPerfilUI(auth.currentUser, newData);
-                            actualizarUI();
-                        } catch (err) {
-                            console.error(err);
-                            let msg = 'Error al guardar. Intenta de nuevo.';
-                            if (err.code === 'auth/email-already-in-use') {
-                                msg = 'Este correo ya está asociado a otra cuenta.';
-                            } else if (err.code === 'auth/weak-password') {
-                                msg = 'La contraseña es muy débil. Debe tener al menos 6 caracteres.';
-                            } else if (err.code === 'auth/credential-already-in-use') {
-                                msg = 'Esta cuenta ya tiene una contraseña establecida.';
-                            }
-                            vinculoError.innerText = msg;
-                            vinculoError.classList.remove('hidden');
-                        }
-                    };
-                }
-            } catch (error) {
-                console.error('Error verificando vinculación:', error);
-                mostrarToast('Error al verificar usuario.', 'error');
-            }
-        }
-
-        function actualizarPerfilUI(user, data = {}) {
-            if (!user) return;
-            const photoURL = user.photoURL || data.foto || '';
-            const displayName = user.displayName || data.nombre || usuarioPromotor || 'Usuario';
-            const email = user.email || data.email || '';
-
-            if (photoURL) {
-                userAvatar.src = photoURL;
-                userAvatar.classList.remove('hidden');
-                profileAvatar.src = photoURL;
-            } else {
-                const iniciales = displayName.split(' ').map(p => p[0]).join('').toUpperCase().slice(0,2);
-                const svg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%233b82f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Inter' font-size='18' fill='white'%3E${iniciales}%3C/text%3E%3C/svg%3E`;
-                userAvatar.src = svg;
-                userAvatar.classList.remove('hidden');
-                profileAvatar.src = svg;
-            }
-            userNameDisplay.innerText = displayName;
-            userNameDisplay.classList.remove('hidden');
-            profileName.innerText = displayName;
-            profileEmail.innerText = email;
-            document.getElementById('perfil-nombre').innerText = displayName;
-            document.getElementById('perfil-email').innerText = email;
-            document.getElementById('perfil-cedula').innerText = `Cédula: ${data.cedula || '--'}`;
-            document.getElementById('perfil-telefono').innerText = `Teléfono: ${data.telefono || '--'}`;
-            document.getElementById('perfil-direccion').innerText = `Dirección: ${data.direccion || '--'}`;
-            const esAdmin = ADMIN_EMAILS.includes(email);
-            document.getElementById('perfil-rol').innerText = `Rol: ${esAdmin ? 'Administrador' : 'Promotor'}`;
-            document.getElementById('perfil-avatar').src = userAvatar.src;
-            document.getElementById('edit-perfil-nombre').value = displayName;
-            document.getElementById('edit-perfil-telefono').value = data.telefono || '';
-            document.getElementById('edit-perfil-direccion').value = data.direccion || '';
-            document.getElementById('edit-perfil-avatar-preview').src = userAvatar.src;
-
-            if (esAdmin) {
-                adminSection.classList.remove('hidden');
-                renderizarUsuarios();
-            } else {
-                adminSection.classList.add('hidden');
-            }
-        }
-
-        window.toggleProfileMenu = function() {
-            const menu = profileMenu;
-            const isOpen = menu.classList.contains('show');
-            document.querySelectorAll('.profile-menu.show').forEach(m => m.classList.remove('show'));
-            if (!isOpen) {
-                menu.classList.add('show');
-                const close = (e) => {
-                    if (!document.getElementById('profile-dropdown').contains(e.target)) {
-                        menu.classList.remove('show');
-                        document.removeEventListener('click', close);
-                    }
-                };
-                setTimeout(() => document.addEventListener('click', close), 10);
-            } else {
-                menu.classList.remove('show');
-            }
-        };
-
-        window.abrirPerfil = function() {
-            document.getElementById('modal-perfil').classList.remove('hidden');
-            profileMenu.classList.remove('show');
-            if (ADMIN_EMAILS.includes(usuarioEmail)) {
-                renderizarUsuarios();
-            }
-        };
-        window.cerrarPerfil = function() {
-            document.getElementById('modal-perfil').classList.add('hidden');
-        };
-
-        window.abrirEditarPerfil = function() {
-            const user = auth.currentUser;
-            if (!user) return;
-            const data = currentUserData || {};
-            document.getElementById('edit-perfil-nombre').value = user.displayName || data.nombre || '';
-            document.getElementById('edit-perfil-telefono').value = data.telefono || '';
-            document.getElementById('edit-perfil-direccion').value = data.direccion || '';
-            document.getElementById('edit-perfil-avatar-preview').src = user.photoURL || userAvatar.src;
-            document.getElementById('modal-editar-perfil').classList.remove('hidden');
-            document.getElementById('modal-perfil').classList.add('hidden');
-        };
-        window.cerrarEditarPerfil = function() {
-            document.getElementById('modal-editar-perfil').classList.add('hidden');
-        };
-
-        async function subirFoto(file, uid) {
-            const ref = storageRef(storage, `usuarios/${uid}/foto`);
-            await uploadBytes(ref, file);
-            return await getDownloadURL(ref);
-        }
-
-        window.guardarEditarPerfil = async function() {
-            const nombre = document.getElementById('edit-perfil-nombre').value.trim();
-            const telefono = document.getElementById('edit-perfil-telefono').value.trim();
-            const direccion = document.getElementById('edit-perfil-direccion').value.trim();
-            const fotoInput = document.getElementById('edit-perfil-foto');
-            const errorDiv = document.getElementById('edit-perfil-error');
-
-            if (!nombre) {
-                errorDiv.innerText = 'El nombre es obligatorio.';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-            errorDiv.classList.add('hidden');
-
-            try {
-                const user = auth.currentUser;
-                if (!user) throw new Error('No autenticado');
-                const uid = user.uid;
-                let fotoURL = user.photoURL || currentUserData.foto || '';
-
-                if (fotoInput.files && fotoInput.files.length > 0) {
-                    try {
-                        fotoURL = await subirFoto(fotoInput.files[0], uid);
-                    } catch (e) {
-                        console.error('Error subiendo foto:', e);
-                        mostrarToast('Error al subir foto', 'error');
-                        return;
-                    }
-                }
-
-                const userDoc = doc(db, "usuarios", uid);
-                const updateData = {
-                    nombre,
-                    telefono,
-                    direccion,
-                    foto: fotoURL,
-                    actualizado: new Date().toISOString()
-                };
-                await updateDoc(userDoc, updateData);
-
-                if (user.displayName !== nombre) {
-                    await updateProfile(user, { displayName: nombre, photoURL: fotoURL });
-                }
-
-                currentUserData = { ...currentUserData, ...updateData };
-                usuarioPromotor = nombre;
-                mostrarToast('Perfil actualizado correctamente', 'success');
-                cerrarEditarPerfil();
-                actualizarPerfilUI(user, currentUserData);
-                actualizarUI();
-            } catch (err) {
-                console.error(err);
-                errorDiv.innerText = 'Error al guardar: ' + err.message;
-                errorDiv.classList.remove('hidden');
-            }
-        };
-
-        function suscribirseUsuarios() {
-            if (unsubscribeUsuarios) {
-                unsubscribeUsuarios();
-                unsubscribeUsuarios = null;
-            }
-            unsubscribeUsuarios = onSnapshot(collection(db, "usuarios"), (snapshot) => {
-                const lista = [];
-                snapshot.forEach(doc => {
-                    const data = { id: doc.id, ...doc.data() };
-                    if (data.nombre) lista.push(data);
-                });
-                allUsers = lista;
-                usuariosPromotores = lista.map(u => ({ id: u.id, nombre: u.nombre, cedula: u.cedula }));
-                actualizarSelectsPromotores();
-                if (!document.getElementById('modal-perfil').classList.contains('hidden') && ADMIN_EMAILS.includes(usuarioEmail)) {
-                    renderizarUsuarios();
-                }
-            }, (error) => console.error('Error en suscripción de usuarios:', error));
-        }
-
-        function actualizarSelectsPromotores() {
-            const selects = [
-                'filtro-promotor-app',
-                'filtro-promotor-web',
-                'filtro-promotor-completados',
-                'select-detalle-promotor',
-                'filtro-promotor-censo'
-            ];
-            selects.forEach(id => {
-                const sel = document.getElementById(id);
-                if (!sel) return;
-                const valorActual = sel.value;
-                let opts = '<option value="">Todos los promotores</option>';
-                usuariosPromotores.forEach(p => {
-                    opts += `<option value="${p.nombre}">${p.nombre}</option>`;
-                });
-                sel.innerHTML = opts;
-                sel.value = valorActual;
-            });
-        }
-
-        function renderizarUsuarios() {
-            if (!tablaUsuariosBody) return;
-            if (!ADMIN_EMAILS.includes(usuarioEmail)) {
-                tablaUsuariosBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-xs" style="color:var(--text-muted);">Acceso restringido</td></tr>`;
-                if (statUsuariosTotal) statUsuariosTotal.innerText = '0';
-                return;
-            }
-            if (!allUsers.length) {
-                tablaUsuariosBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-xs" style="color:var(--text-muted);">No hay usuarios registrados.</td></tr>`;
-                if (statUsuariosTotal) statUsuariosTotal.innerText = '0';
-                return;
-            }
-            let html = '';
-            allUsers.forEach(u => {
-                const esAdmin = ADMIN_EMAILS.includes(u.email);
-                const esActual = u.id === usuarioUid;
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${u.nombre || 'Sin nombre'}</td>
-                    <td style="color:var(--text-secondary);">${u.email || '--'}</td>
-                    <td>${u.cedula || '--'}</td>
-                    <td>${u.telefono || '--'}</td>
-                    <td><span class="badge ${esAdmin ? 'badge-estado-completado' : 'badge-estado-pendiente'}">${esAdmin ? 'Administrador' : 'Promotor'}</span></td>
-                    <td class="text-center whitespace-nowrap">
-                        <button onclick="editarUsuario('${u.id}')" class="btn-action editar" title="Editar"><i class="fa-regular fa-pen-to-square"></i></button>
-                        <button onclick="cambiarContrasena('${u.email}')" class="btn-action estado" title="Cambiar contraseña"><i class="fa-solid fa-key"></i></button>
-                        ${!esActual ? `<button onclick="eliminarUsuario('${u.id}')" class="btn-action eliminar" title="Eliminar"><i class="fa-regular fa-trash-can"></i></button>` : ''}
-                    </td>
-                </tr>`;
-            });
-            tablaUsuariosBody.innerHTML = html;
-            if (statUsuariosTotal) statUsuariosTotal.innerText = allUsers.length;
-        }
-
-        window.editarUsuario = function(uid) {
-            const user = allUsers.find(u => u.id === uid);
-            if (!user) {
-                mostrarToast('Usuario no encontrado', 'error');
-                return;
-            }
-            document.getElementById('edit-usuario-uid').value = uid;
-            document.getElementById('edit-usuario-nombre').value = user.nombre || '';
-            document.getElementById('edit-usuario-telefono').value = user.telefono || '';
-            document.getElementById('edit-usuario-direccion').value = user.direccion || '';
-            document.getElementById('edit-usuario-rol').value = user.rol || (ADMIN_EMAILS.includes(user.email) ? 'administrador' : 'promotor');
-            document.getElementById('modal-editar-usuario').classList.remove('hidden');
-        };
-
-        window.cerrarModalEditarUsuario = function() {
-            document.getElementById('modal-editar-usuario').classList.add('hidden');
-        };
-
-        window.guardarEditarUsuario = async function() {
-            const uid = document.getElementById('edit-usuario-uid').value;
-            const nombre = document.getElementById('edit-usuario-nombre').value.trim();
-            const telefono = document.getElementById('edit-usuario-telefono').value.trim();
-            const direccion = document.getElementById('edit-usuario-direccion').value.trim();
-            const rol = document.getElementById('edit-usuario-rol').value;
-            const errorDiv = document.getElementById('edit-usuario-error');
-
-            if (!nombre) {
-                errorDiv.innerText = 'El nombre es obligatorio.';
-                errorDiv.classList.remove('hidden');
-                return;
-            }
-            errorDiv.classList.add('hidden');
-
-            try {
-                const userDoc = doc(db, "usuarios", uid);
-                const updateData = { nombre, telefono, direccion, rol };
-                await updateDoc(userDoc, updateData);
-                mostrarToast('Usuario actualizado correctamente', 'success');
-                cerrarModalEditarUsuario();
-                renderizarUsuarios();
-                if (uid === usuarioUid) {
-                    currentUserData = { ...currentUserData, ...updateData };
-                    actualizarPerfilUI(auth.currentUser, currentUserData);
-                }
-            } catch (err) {
-                console.error(err);
-                errorDiv.innerText = 'Error al guardar: ' + err.message;
-                errorDiv.classList.remove('hidden');
-            }
-        };
-
-        window.cambiarContrasena = function(email) {
-            if (!email) {
-                mostrarToast('El usuario no tiene email', 'error');
-                return;
-            }
-            if (!confirm(`¿Enviar correo de restablecimiento de contraseña a ${email}?`)) return;
-            sendPasswordResetEmail(auth, email)
-                .then(() => {
-                    mostrarToast(`Correo enviado a ${email}`, 'success');
-                })
-                .catch((err) => {
-                    console.error(err);
-                    mostrarToast('Error al enviar correo: ' + err.message, 'error');
-                });
-        };
-
-        window.eliminarUsuario = function(uid) {
-            if (uid === usuarioUid) {
-                mostrarToast('No puedes eliminarte a ti mismo', 'warning');
-                return;
-            }
-            if (!confirm('⚠️ ¿Estás seguro de eliminar este usuario? Esta acción es permanente.')) return;
-            deleteDoc(doc(db, "usuarios", uid))
-                .then(() => {
-                    mostrarToast('✅ Usuario eliminado correctamente', 'success');
-                    renderizarUsuarios();
-                })
-                .catch((err) => {
-                    console.error('Error al eliminar usuario:', err);
-                    mostrarToast('❌ Error al eliminar usuario: ' + err.message, 'error');
-                });
-        };
-
-        function filtrarPorPromotor(docs) {
-            if (ADMIN_EMAILS.includes(usuarioEmail)) return docs;
-            if (!usuarioPromotor) return docs;
-            const lower = usuarioPromotor.trim().toLowerCase();
-            return docs.filter(d => (d.promotor || '').trim().toLowerCase() === lower);
-        }
-
-        function suscribirseUbicaciones() {
-            if (unsubscribeUbicaciones) {
-                unsubscribeUbicaciones();
-                unsubscribeUbicaciones = null;
-            }
-            unsubscribeUbicaciones = onSnapshot(
-                collection(db, "promotores_ubicacion"),
-                (snapshot) => {
-                    const nuevas = [];
-                    snapshot.forEach(doc => {
-                        const data = { id: doc.id, ...doc.data() };
-                        if (data.promotor && data.lat !== undefined && data.lng !== undefined) {
-                            nuevas.push(data);
-                        }
-                    });
-                    ubicacionesPromotores = nuevas;
-                    if (currentSection === 'rastreo') {
-                        renderizarRastreo();
-                        actualizarMarcadores();
-                    }
-                },
-                (error) => {
-                    console.error('Error en suscripción de ubicaciones:', error);
-                    mostrarToast('Error al cargar ubicaciones', 'error');
-                }
-            );
-        }
-
-        function inicializarMapa() {
-            if (mapa) {
-                mapa.invalidateSize();
-                return;
-            }
-            const contenedor = document.getElementById('mapa-rastreo');
-            if (!contenedor) return;
-            mapa = L.map('mapa-rastreo', {
-                center: [10.4806, -66.9036],
-                zoom: 12,
-                zoomControl: true,
-                fadeAnimation: true,
-                attributionControl: true
-            });
-            const isLight = document.body.classList.contains('light-theme');
-            const tileUrl = isLight
-                ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-                : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-            tileLayer = L.tileLayer(tileUrl, {
+        function inicializarMapa(centro) {
+            mapa = L.map('mapPreview', { zoomControl: true, attributionControl: false }).setView(centro, 15);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap, &copy; CartoDB'
             }).addTo(mapa);
-            marcadoresGrupo = L.layerGroup().addTo(mapa);
-            window.addEventListener('resize', () => {
-                if (mapa) mapa.invalidateSize();
+            marcador = L.marker(centro, { draggable: true }).addTo(mapa);
+            marcador.on('dragend', () => actualizarInputDesdeMarcador(marcador.getLatLng()));
+            mapa.on('click', (e) => {
+                marcador.setLatLng(e.latlng);
+                actualizarInputDesdeMarcador(e.latlng);
             });
-            document.getElementById('btn-centrar-mapa')?.addEventListener('click', centrarMapa);
         }
 
-        function actualizarMarcadores() {
-            if (!marcadoresGrupo) return;
-            marcadoresGrupo.clearLayers();
-            if (!ubicacionesPromotores.length) {
-                L.popup()
-                    .setLatLng(mapa.getCenter())
-                    .setContent('No hay promotores con ubicación activa.')
-                    .openOn(mapa);
-                return;
-            }
-            const bounds = [];
-            ubicacionesPromotores.forEach(ubic => {
-                const lat = parseFloat(ubic.lat);
-                const lng = parseFloat(ubic.lng);
-                if (isNaN(lat) || isNaN(lng)) return;
-                const popupContent = `
-                    <strong>${ubic.promotor}</strong><br />
-                    Lat: ${lat.toFixed(6)}<br />
-                    Lng: ${lng.toFixed(6)}<br />
-                    <small>${ubic.timestamp ? new Date(ubic.timestamp).toLocaleString('es-VE', { hour12: false }) : 'Reciente'}</small>
-                `;
-                const marker = L.marker([lat, lng], {
-                    title: ubic.promotor,
-                    riseOnHover: true
-                }).bindPopup(popupContent);
-                marcadoresGrupo.addLayer(marker);
-                bounds.push([lat, lng]);
-            });
-            if (bounds.length > 0) {
-                mapa.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
-            }
+        function moverMapaA(centro, actualizarInput = false) {
+            if (!mapa) return;
+            mapa.setView(centro, 16);
+            marcador.setLatLng(centro);
+            if (actualizarInput) actualizarInputDesdeMarcador({ lat: centro[0], lng: centro[1] });
         }
 
-        function centrarMapa() {
-            if (!marcadoresGrupo) return;
-            const markers = marcadoresGrupo.getLayers();
-            if (markers.length === 0) {
-                mostrarToast('No hay marcadores para centrar', 'warning');
-                return;
-            }
-            const bounds = markers.map(m => m.getLatLng());
-            mapa.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+        function mostrarMapa() {
+            const coordsActuales = parsearCoordenadas(coordInput.value) || CENTRO_DEFECTO;
+            mapWrap.classList.add('open');
+            btnToggleMapa.classList.add('active');
+            mapaVisible = true;
+            // Leaflet necesita el contenedor visible con tamaño real antes de iniciar/redimensionar.
+            setTimeout(() => {
+                if (!mapa) inicializarMapa(coordsActuales);
+                else { mapa.invalidateSize(); moverMapaA(coordsActuales); }
+            }, 320);
         }
 
-        function renderizarRastreo() {
-            const tbody = document.getElementById('tabla-rastreo-body');
-            const totalSpan = document.getElementById('stat-rastreo-total');
-            if (!tbody) return;
-            if (!ADMIN_EMAILS.includes(usuarioEmail)) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-xs" style="color:var(--text-muted);">Acceso restringido</td></tr>`;
-                if (totalSpan) totalSpan.innerText = '0';
-                return;
-            }
-            if (!ubicacionesPromotores.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-xs" style="color:var(--text-muted);">No hay promotores con ubicación activa.</td></tr>`;
-                if (totalSpan) totalSpan.innerText = '0';
-                return;
-            }
-            let html = '';
-            const sorted = [...ubicacionesPromotores].sort((a, b) => {
-                const ta = a.timestamp || a.ultima_actualizacion || '';
-                const tb = b.timestamp || b.ultima_actualizacion || '';
-                return tb.localeCompare(ta);
-            });
-            sorted.forEach(ubic => {
-                const promotor = ubic.promotor || 'Desconocido';
-                const lat = ubic.lat ?? ubic.latitude ?? 'N/D';
-                const lng = ubic.lng ?? ubic.longitude ?? 'N/D';
-                const timestamp = ubic.timestamp || ubic.ultima_actualizacion || 'Reciente';
-                let fechaFormateada = timestamp;
-                try {
-                    const date = new Date(timestamp);
-                    if (!isNaN(date.getTime())) {
-                        fechaFormateada = date.toLocaleString('es-VE', { hour12: false });
-                    }
-                } catch (e) {}
-                const mapaUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${promotor}</td>
-                    <td class="font-mono" style="color:var(--accent);">${lat}</td>
-                    <td class="font-mono" style="color:var(--accent);">${lng}</td>
-                    <td class="text-[10px]" style="color:var(--text-secondary);">${fechaFormateada}</td>
-                    <td class="text-center">
-                        <a href="${mapaUrl}" target="_blank" rel="noopener noreferrer" 
-                           class="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all inline-flex items-center gap-1" style="background:rgba(16,185,129,0.15); color:#6ee7b7; border:1px solid rgba(16,185,129,0.2);">
-                            <i class="fa-solid fa-map-location-dot"></i> Mapa
-                        </a>
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-            if (totalSpan) totalSpan.innerText = sorted.length;
+        function ocultarMapa() {
+            mapWrap.classList.remove('open');
+            btnToggleMapa.classList.remove('active');
+            mapaVisible = false;
         }
 
-        function obtenerColeccionPorOrigen(origen) {
-            const o = (origen || '').toLowerCase();
-            if (o === 'censo') return 'censo_prospectos';
-            if (o === 'web') return 'portal_web';
-            return 'clientes_app';
-        }
+        btnToggleMapa.addEventListener('click', () => (mapaVisible ? ocultarMapa() : mostrarMapa()));
 
-        function fusionarYRenderizar() {
-            const newDocs = [
-                ...registrosPorFuente.censo,
-                ...registrosPorFuente.app,
-                ...registrosPorFuente.web
-            ];
-            const currentIds = new Set(newDocs.map(d => d.id));
-
-            if (usuarioPromotor || ADMIN_EMAILS.includes(usuarioEmail)) {
-                const nuevos = newDocs.filter(d => !previousIds.has(d.id));
-                if (nuevos.length > 0 && previousIds.size > 0) {
-                    reproducirSonido();
-                    const nombres = nuevos.map(d => getNombreCompleto(d)).join(', ');
-                    mostrarToast(`📦 Nuevo registro: ${nombres}`, 'success');
-                }
-            }
-
-            allDocs = newDocs;
-            previousIds = currentIds;
-            actualizarUI();
-        }
-
-        function suscribirseFirestore() {
-            if (unsubscribeCenso) { unsubscribeCenso(); unsubscribeCenso = null; }
-            if (unsubscribeClientesApp) { unsubscribeClientesApp(); unsubscribeClientesApp = null; }
-            if (unsubscribePortalWeb) { unsubscribePortalWeb(); unsubscribePortalWeb = null; }
-
-            unsubscribeCenso = onSnapshot(
-                collection(db, "censo_prospectos"),
-                (snapshot) => {
-                    registrosPorFuente.censo = snapshot.docs.map(d => {
-                        const data = { id: d.id, ...d.data() };
-                        if (!data.origen) data.origen = 'Censo';
-                        return data;
-                    });
-                    fusionarYRenderizar();
-                },
-                (error) => {
-                    console.error('❌ Error censo_prospectos:', error);
-                    mostrarToast('Error de sincronización (Censo)', 'error');
-                }
-            );
-
-            unsubscribeClientesApp = onSnapshot(
-                collection(db, "clientes_app"),
-                (snapshot) => {
-                    registrosPorFuente.app = snapshot.docs.map(d => {
-                        const data = { id: d.id, ...d.data() };
-                        if (!data.origen) data.origen = 'App';
-                        return data;
-                    });
-                    fusionarYRenderizar();
-                },
-                (error) => {
-                    console.error('❌ Error clientes_app:', error);
-                    mostrarToast('Error de sincronización (App)', 'error');
-                }
-            );
-
-            unsubscribePortalWeb = onSnapshot(
-                collection(db, "portal_web"),
-                (snapshot) => {
-                    registrosPorFuente.web = snapshot.docs.map(d => {
-                        const data = { id: d.id, ...d.data() };
-                        if (!data.origen) data.origen = 'Web';
-                        return data;
-                    });
-                    fusionarYRenderizar();
-                },
-                (error) => {
-                    console.error('❌ Error portal_web:', error);
-                    mostrarToast('Error de sincronización (Web)', 'error');
-                }
-            );
-
-            unsubscribeFirestore = () => {
-                if (unsubscribeCenso) unsubscribeCenso();
-                if (unsubscribeClientesApp) unsubscribeClientesApp();
-                if (unsubscribePortalWeb) unsubscribePortalWeb();
-                unsubscribeCenso = null;
-                unsubscribeClientesApp = null;
-                unsubscribePortalWeb = null;
-            };
-        }
-
-        function actualizarUI() {
-            const esAdmin = ADMIN_EMAILS.includes(usuarioEmail);
-            if (esAdmin) {
-                btnRastreo.classList.remove('hidden');
-            } else {
-                btnRastreo.classList.add('hidden');
-                if (currentSection === 'rastreo') cambiarSeccion('dashboard');
-            }
-            const docsFiltrados = filtrarPorPromotor(allDocs);
-            procesarDashboard(docsFiltrados);
-            renderizarRecientes(docsFiltrados);
-            renderizarTodosRegistros(docsFiltrados);
-            renderizarContratosWeb(docsFiltrados);
-            renderizarCompletados(docsFiltrados);
-            renderizarRankingPromotores(docsFiltrados);
-            renderizarCenso(docsFiltrados);
-            const sel = document.getElementById('select-detalle-promotor');
-            if (sel) renderizarDetallePromotorSeleccionado(sel.value, docsFiltrados);
-        }
-
-        function getBadgeEstado(estado) {
-            const e = (estado || 'Pendiente').toLowerCase();
-            if (e.includes('completado') || e.includes('activo')) return `<span class="badge badge-estado-completado">${estado}</span>`;
-            if (e.includes('cancelado') || e.includes('no interesado')) return `<span class="badge badge-estado-cancelado">${estado}</span>`;
-            if (e.includes('proceso')) return `<span class="badge badge-estado-proceso">${estado}</span>`;
-            if (e.includes('procesado')) return `<span class="badge badge-estado-procesado">${estado}</span>`;
-            return `<span class="badge badge-estado-pendiente">${estado}</span>`;
-        }
-
-        function getBadgeMetodo(origen) {
-            const o = (origen || '').toLowerCase();
-            if (o.includes('web')) return '<span class="badge badge-web"><i class="fa-solid fa-globe mr-0.5"></i>Web</span>';
-            if (o.includes('censo')) return '<span class="badge badge-censo"><i class="fa-solid fa-map-location-dot mr-0.5"></i>Censo</span>';
-            return '<span class="badge badge-app"><i class="fa-solid fa-mobile-screen mr-0.5"></i>App</span>';
-        }
-
-        function procesarDashboard(docs) {
-            const total = docs.length;
-            const promotoresSet = new Set(docs.map(d => d.promotor).filter(Boolean));
-            const estadosSet = new Set(docs.map(d => d.estado).filter(Boolean));
-            const planesSet = new Set(docs.map(d => d.plan).filter(Boolean));
-
-            document.getElementById('stat-dash-total').innerText = total;
-            document.getElementById('stat-dash-promotores').innerText = promotoresSet.size;
-            document.getElementById('stat-dash-estados').innerText = estadosSet.size;
-            document.getElementById('stat-dash-planes').innerText = planesSet.size;
-        }
-
-        // ===== RENDERIZADORES ACTUALIZADOS =====
-
-        function renderizarRecientes(docs) {
-            const tbody = document.getElementById('tabla-recientes-body');
-            if (!tbody) return;
-            if (!docs.length) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-xs" style="color:var(--text-muted);">No hay registros recientes.</td></tr>`;
-                return;
-            }
-            const sorted = [...docs].sort((a, b) => {
-                const ta = a.fecha || a.creado || '';
-                const tb = b.fecha || b.creado || '';
-                return tb.localeCompare(ta);
-            }).slice(0, 10);
-
-            let html = '';
-            sorted.forEach(d => {
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${getNombreCompleto(d)}</td>
-                    <td>${d.plan || '--'}</td>
-                    <td>${d.promotor || '--'}</td>
-                    <td>${getBadgeEstado(d.estado)}</td>
-                    <td>${getBadgeMetodo(d.origen)}</td>
-                    <td class="text-[10px]" style="color:var(--text-secondary);">${getFecha(d)}</td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function renderizarTodosRegistros(docs) {
-            const tbody = document.getElementById('tabla-ingresados-body');
-            const statTotal = document.getElementById('stat-ing-total');
-            const filtroPromotor = document.getElementById('filtro-promotor-app')?.value || '';
-            const busqueda = document.getElementById('busqueda-ingresados')?.value.toLowerCase() || '';
-
-            if (!tbody) return;
-
-            let filtrados = docs.filter(d => {
-                if (filtroPromotor && (d.promotor || '') !== filtroPromotor) return false;
-                if (busqueda) {
-                    const texto = `${getNombreCompleto(d)} ${getCedula(d)} ${d.sector || ''} ${d.plan || ''}`.toLowerCase();
-                    if (!texto.includes(busqueda)) return false;
-                }
-                return true;
-            });
-
-            if (statTotal) statTotal.innerText = filtrados.length;
-            if (!filtrados.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-xs" style="color:var(--text-muted);">No se encontraron registros.</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            filtrados.forEach(d => {
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${getNombreCompleto(d)}<br/><small style="color:var(--text-muted);">${getCedula(d)}</small></td>
-                    <td>${d.sector || '--'}</td>
-                    <td>${d.plan || '--'}</td>
-                    <td>${d.promotor || '--'}</td>
-                    <td>${getBadgeEstado(d.estado)}</td>
-                    <td>${getBadgeMetodo(d.origen)}</td>
-                    <td class="text-[10px]" style="color:var(--text-secondary);">${getFecha(d)}</td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        // ===== RENDERIZADOR CON EL BOTÓN DE ELIMINAR =====
-        function renderizarContratosWeb(docs) {
-            const tbody = document.getElementById('tabla-web-body');
-            const statTotal = document.getElementById('stat-web-total');
-            const filtroPromotor = document.getElementById('filtro-promotor-web')?.value || '';
-            const filtroEstado = document.getElementById('filtro-estado-web')?.value || '';
-
-            if (!tbody) return;
-
-            let webDocs = docs.filter(d => (d.origen || '').toLowerCase() === 'web');
-            let filtrados = webDocs.filter(d => {
-                if (filtroPromotor && (d.promotor || '') !== filtroPromotor) return false;
-                if (filtroEstado && (d.estado || 'Pendiente') !== filtroEstado) return false;
-                return true;
-            });
-
-            if (statTotal) statTotal.innerText = webDocs.length;
-            if (!filtrados.length) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-xs" style="color:var(--text-muted);">No hay contratos web.</td></tr>`;
-                return;
-            }
-
-            const esAdmin = ADMIN_EMAILS.includes(usuarioEmail);
-
-            let html = '';
-            filtrados.forEach(d => {
-                const btnEliminar = esAdmin ? `<button onclick="eliminarContrato('${d.id}')" class="btn-action eliminar" title="Eliminar contrato"><i class="fa-regular fa-trash-can"></i></button>` : '';
-
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${getNombreCompleto(d)}<br/><small style="color:var(--text-muted);">${getCedula(d)}</small></td>
-                    <td>${d.sector || '--'}</td>
-                    <td>${d.plan || '--'}</td>
-                    <td>${d.promotor || '--'}</td>
-                    <td>${getBadgeEstado(d.estado)}</td>
-                    <td>${getBadgeMetodo(d.origen)}</td>
-                    <td class="text-[10px]" style="color:var(--text-secondary);">${getFecha(d)}</td>
-                    <td class="text-center whitespace-nowrap">
-                        <button onclick="verDetalle('${d.id}')" class="btn-action ver" title="Ver detalle"><i class="fa-regular fa-eye"></i></button>
-                        <button onclick="abrirEditarCenso('${d.id}')" class="btn-action editar" title="Editar estado"><i class="fa-regular fa-pen-to-square"></i></button>
-                        ${btnEliminar}
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function renderizarCompletados(docs) {
-            const tbody = document.getElementById('tabla-completados-body');
-            const statTotal = document.getElementById('stat-completados-total');
-            const filtroPromotor = document.getElementById('filtro-promotor-completados')?.value || '';
-            const busqueda = document.getElementById('busqueda-completados')?.value.toLowerCase() || '';
-
-            if (!tbody) return;
-
-            let completados = docs.filter(d => {
-                const est = (d.estado || '').toLowerCase();
-                return est.includes('completado') || est.includes('activo');
-            });
-
-            let filtrados = completados.filter(d => {
-                if (filtroPromotor && (d.promotor || '') !== filtroPromotor) return false;
-                if (busqueda) {
-                    const texto = `${getNombreCompleto(d)} ${getCedula(d)} ${d.sector || ''} ${d.plan || ''}`.toLowerCase();
-                    if (!texto.includes(busqueda)) return false;
-                }
-                return true;
-            });
-
-            if (statTotal) statTotal.innerText = completados.length;
-            if (!filtrados.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-xs" style="color:var(--text-muted);">No hay contratos completados.</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            filtrados.forEach(d => {
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${getNombreCompleto(d)}<br/><small style="color:var(--text-muted);">${getCedula(d)}</small></td>
-                    <td>${d.sector || '--'}</td>
-                    <td>${d.plan || '--'}</td>
-                    <td>${d.promotor || '--'}</td>
-                    <td>${getBadgeMetodo(d.origen)}</td>
-                    <td class="text-[10px]" style="color:var(--text-secondary);">${getFecha(d)}</td>
-                    <td class="text-center whitespace-nowrap">
-                        <button onclick="verDetalle('${d.id}')" class="btn-action ver" title="Ver detalle"><i class="fa-regular fa-eye"></i></button>
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function renderizarDetallePromotorSeleccionado(promotorSeleccionado, docs) {
-            const tbody = document.getElementById('tabla-promotores-body');
-            const tituloSpan = document.getElementById('titulo-tabla-promotor');
-            const contadorSpan = document.getElementById('contador-promotor-sel');
-            if (!tbody) return;
-
-            let filtrados = docs;
-            if (promotorSeleccionado) {
-                filtrados = docs.filter(d => (d.promotor || '') === promotorSeleccionado);
-            }
-
-            if (tituloSpan) {
-                tituloSpan.innerHTML = `<i class="fa-solid fa-list-check text-purple-400"></i> Registros: <span class="text-purple-400 font-mono">${promotorSeleccionado || 'Todos'}</span>`;
-            }
-            if (contadorSpan) contadorSpan.innerText = filtrados.length;
-
-            if (!filtrados.length) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-xs" style="color:var(--text-muted);">No hay registros para este promotor.</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            filtrados.forEach(d => {
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${getNombreCompleto(d)}</td>
-                    <td>${getCedula(d)}</td>
-                    <td>${d.sector || '--'}</td>
-                    <td>${d.plan || '--'}</td>
-                    <td>${getBadgeEstado(d.estado)}</td>
-                    <td>${getBadgeMetodo(d.origen)}</td>
-                    <td class="text-[10px]" style="color:var(--text-secondary);">${getFecha(d)}</td>
-                    <td class="text-center whitespace-nowrap">
-                        <button onclick="verDetalle('${d.id}')" class="btn-action ver" title="Ver detalle"><i class="fa-regular fa-eye"></i></button>
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function renderizarCenso(docs) {
-            const tbody = document.getElementById('tabla-censo-body');
-            const statTotal = document.getElementById('stat-censo-total');
-            const resumenContainer = document.getElementById('censo-resumen-promotores');
-            const filtroPromotor = document.getElementById('filtro-promotor-censo')?.value || '';
-            const filtroEstado = document.getElementById('filtro-estado-censo')?.value || '';
-
-            if (!tbody) return;
-
-            let censoDocs = docs.filter(d => (d.origen || '').toLowerCase() === 'censo' || d.ciudadano !== undefined);
-            let filtrados = censoDocs.filter(d => {
-                if (filtroPromotor && (d.promotor || '') !== filtroPromotor) return false;
-                if (filtroEstado && (d.estado || 'Pendiente') !== filtroEstado) return false;
-                return true;
-            });
-
-            if (statTotal) statTotal.innerText = censoDocs.length;
-
-            if (resumenContainer) {
-                const conteo = {};
-                censoDocs.forEach(d => {
-                    const p = d.promotor || 'Sin promotor';
-                    conteo[p] = (conteo[p] || 0) + 1;
-                });
-                let resHtml = '';
-                Object.entries(conteo).slice(0, 4).forEach(([p, total]) => {
-                    resHtml += `<div class="glass-card rounded-2xl p-4 shadow-lg border-l-4 border-amber-500">
-                        <p class="text-[10px] uppercase font-semibold truncate" style="color:var(--text-secondary);">${p}</p>
-                        <h3 class="text-xl font-black mt-1 text-amber-400">${total}</h3>
-                    </div>`;
-                });
-                resumenContainer.innerHTML = resHtml || '<p class="col-span-full text-center text-xs text-muted">Sin datos de censo.</p>';
-            }
-
-            if (!filtrados.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-xs" style="color:var(--text-muted);">No hay prospectos en el censo.</td></tr>`;
-                return;
-            }
-
-            let html = '';
-            filtrados.forEach(d => {
-                html += `<tr>
-                    <td class="font-medium" style="color:var(--text-primary);">${getNombreCompleto(d)}<br/><small style="color:var(--text-muted);">${getCedula(d)}</small></td>
-                    <td>${d.sector || '--'}</td>
-                    <td>${d.promotor || '--'}</td>
-                    <td>${getBadgeEstado(d.estado)}</td>
-                    <td>${getBadgeMetodo(d.origen)}</td>
-                    <td class="text-[10px]" style="color:var(--text-secondary);">${getFecha(d)}</td>
-                    <td class="text-center whitespace-nowrap">
-                        <button onclick="verDetalle('${d.id}')" class="btn-action ver" title="Ver detalle"><i class="fa-regular fa-eye"></i></button>
-                        <button onclick="abrirEditarCenso('${d.id}')" class="btn-action editar" title="Editar estado"><i class="fa-regular fa-pen-to-square"></i></button>
-                    </td>
-                </tr>`;
-            });
-            tbody.innerHTML = html;
-        }
-
-        function renderizarRankingPromotores(docs) {
-            const grid = document.getElementById('promotores-ranking-grid');
-            if (!grid) return;
-
-            const conteo = {};
-            docs.forEach(d => {
-                const p = d.promotor || 'Sin promotor';
-                conteo[p] = (conteo[p] || 0) + 1;
-            });
-
-            const sorted = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
-            if (!sorted.length) {
-                grid.innerHTML = `<p class="col-span-full text-center py-4 text-xs" style="color:var(--text-muted);">No hay datos de promotores.</p>`;
-                return;
-            }
-
-            let html = '';
-            sorted.forEach(([promotor, total], index) => {
-                const colores = ['border-l-4 border-blue-500', 'border-l-4 border-emerald-500', 'border-l-4 border-purple-500', 'border-l-4 border-amber-500'];
-                const claseBorde = colores[index % colores.length];
-                html += `<div class="glass-card rounded-2xl p-4 shadow-lg ${claseBorde} flex items-center justify-between">
-                    <div>
-                        <p class="text-[10px] uppercase font-semibold" style="color:var(--text-secondary);">Promotor #${index + 1}</p>
-                        <h4 class="font-bold text-sm mt-0.5" style="color:var(--text-primary);">${promotor}</h4>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-2xl font-black" style="color:var(--accent);">${total}</span>
-                        <p class="text-[9px]" style="color:var(--text-muted);">Registros</p>
-                    </div>
-                </div>`;
-            });
-            grid.innerHTML = html;
-        }
-
-        document.getElementById('select-detalle-promotor')?.addEventListener('change', (e) => {
-            renderizarDetallePromotorSeleccionado(e.target.value, filtrarPorPromotor(allDocs));
+        // Si el usuario escribe/pega coordenadas manualmente y el mapa está abierto, lo sincroniza.
+        coordInput.addEventListener('change', () => {
+            const coords = parsearCoordenadas(coordInput.value);
+            if (coords && mapaVisible) moverMapaA(coords);
         });
 
-        document.getElementById('filtro-promotor-app')?.addEventListener('change', () => renderizarTodosRegistros(filtrarPorPromotor(allDocs)));
-        document.getElementById('busqueda-ingresados')?.addEventListener('input', () => renderizarTodosRegistros(filtrarPorPromotor(allDocs)));
-        document.getElementById('filtro-promotor-web')?.addEventListener('change', () => renderizarContratosWeb(filtrarPorPromotor(allDocs)));
-        document.getElementById('filtro-estado-web')?.addEventListener('change', () => renderizarContratosWeb(filtrarPorPromotor(allDocs)));
-        document.getElementById('filtro-promotor-completados')?.addEventListener('change', () => renderizarCompletados(filtrarPorPromotor(allDocs)));
-        document.getElementById('busqueda-completados')?.addEventListener('input', () => renderizarCompletados(filtrarPorPromotor(allDocs)));
-        document.getElementById('filtro-promotor-censo')?.addEventListener('change', () => renderizarCenso(filtrarPorPromotor(allDocs)));
-        document.getElementById('filtro-estado-censo')?.addEventListener('change', () => renderizarCenso(filtrarPorPromotor(allDocs)));
-
-        // ===== MODAL DETALLE ACTUALIZADO =====
-        window.verDetalle = function(id) {
-            const docItem = allDocs.find(d => d.id === id);
-            if (!docItem) {
-                mostrarToast('Registro no encontrado', 'error');
+        // --- Geolocalización ---
+        document.getElementById('btnUbicarme').addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                mostrarToast('Geolocalización no disponible en este dispositivo.', 'error');
                 return;
             }
+            navigator.geolocation.getCurrentPosition(
+                p => {
+                    const coords = [p.coords.latitude, p.coords.longitude];
+                    coordInput.value = `${coords[0]}, ${coords[1]}`;
+                    mostrarToast('Ubicación obtenida correctamente', 'success');
+                    if (!mapaVisible) mostrarMapa();
+                    else moverMapaA(coords);
+                },
+                () => mostrarToast('No se pudo obtener la ubicación. Ingrésala manualmente.', 'warning'),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
 
-            const nombreCompleto = getNombreCompleto(docItem);
-            document.getElementById('modal-detalle-titulo').textContent = nombreCompleto;
-
-            // 1) Recolectar fotos del registro
-            const fotos = [];
-            Object.entries(docItem).forEach(([k, v]) => {
-                if (Array.isArray(v) && v.some(esImagen)) {
-                    v.filter(esImagen).forEach(url => fotos.push({ campo: k, url }));
-                } else if (esImagen(v)) {
-                    fotos.push({ campo: k, url: v });
+        // --- Sincronización en tiempo real de promotores ---
+        // Lee directo de "usuarios". Se excluyen administradores y supervisores por el campo "rol".
+        onSnapshot(collection(db, "usuarios"), (snapshot) => {
+            const options = [{ value: '', text: '-- Selecciona un promotor --' }];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const rol = (data.rol || '').trim().toLowerCase();
+                const esExcluido = rol === 'administrador' || rol === 'supervisor';
+                if (data.nombre && !esExcluido) {
+                    options.push({ value: data.nombre, text: `${data.nombre}${data.cedula ? ' · ' + data.cedula : ''}` });
                 }
             });
+            promotorSelect.innerHTML = options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('');
+        }, (error) => {
+            console.error('[promotores] Error en suscripción (revisar reglas de Firestore para "usuarios"):', error);
+            promotorSelect.innerHTML = '<option value="">-- No se pudo cargar la lista de promotores --</option>';
+            mostrarToast('No se pudo cargar la lista de promotores. Recarga la página.', 'error');
+        });
 
-            // 2) Hero + avatar
-            const heroEl = document.getElementById('modal-detalle-hero');
-            const avatarEl = document.getElementById('modal-detalle-avatar');
-            if (fotos.length) {
-                heroEl.style.backgroundImage = `url('${fotos[0].url}')`;
-                avatarEl.innerHTML = `<img src="${fotos[0].url}" alt="${escapeHtml(nombreCompleto)}" onerror="this.parentElement.textContent='${(nombreCompleto.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'?')}';" />`;
-            } else {
-                heroEl.style.backgroundImage = '';
-                const iniciales = nombreCompleto.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || '?';
-                avatarEl.textContent = iniciales;
-            }
+        // --- Compresión adaptativa de imagen (queda dentro de Firestore, sin Storage) ---
+        const LIMITE_BASE64_BYTES = 650 * 1024; // ~650KB de margen seguro por documento
+        const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15MB tope de entrada, evita colgar el navegador
 
-            // 3) Badges (origen + estado)
-            let badgesHtml = '';
-            if (docItem.origen) {
-                const o = String(docItem.origen).toLowerCase();
-                const badgeClass = o === 'app' ? 'badge-app' : o === 'web' ? 'badge-web' : 'badge-censo';
-                badgesHtml += `<span class="badge ${badgeClass}"><i class="fa-solid fa-tag"></i> ${escapeHtml(docItem.origen)}</span>`;
-            }
-            if (docItem.estado) {
-                badgesHtml += getBadgeEstado(docItem.estado);
-            }
-            document.getElementById('modal-detalle-badges').innerHTML = badgesHtml;
+        function comprimirImagen(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('No se pudo leer el archivo de imagen.'));
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('El archivo seleccionado no es una imagen válida.'));
+                    img.onload = () => {
+                        const MAX = 800;
+                        const scale = Math.min(1, MAX / img.width);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
 
-            // 4) Campos de información (excluye id, fotos, estado y origen ya mostrados)
-            const camposOcultos = new Set(['id', 'estado', 'origen']);
-            let html = '';
-            Object.entries(docItem).forEach(([k, v]) => {
-                if (camposOcultos.has(k)) return;
-                if (Array.isArray(v) && v.some(esImagen)) return;
-                if (esImagen(v)) return;
+                        let calidad = 0.7;
+                        let resultado = canvas.toDataURL('image/jpeg', calidad);
+                        while (resultado.length > LIMITE_BASE64_BYTES && calidad > 0.3) {
+                            calidad -= 0.1;
+                            resultado = canvas.toDataURL('image/jpeg', calidad);
+                        }
 
-                let valorMostrar = v;
-                if (v instanceof Timestamp || (typeof v === 'object' && v !== null && 'seconds' in v && 'nanoseconds' in v)) {
-                    valorMostrar = formatearFecha(v);
-                } else if (typeof v === 'object' && v !== null) {
-                    try {
-                        valorMostrar = JSON.stringify(v);
-                    } catch (e) {
-                        valorMostrar = '[Objeto]';
-                    }
-                }
-
-                const tieneValor = valorMostrar !== null && valorMostrar !== undefined && valorMostrar !== '';
-                const keyLower = k.toLowerCase();
-                let valorHtml = tieneValor ? escapeHtml(String(valorMostrar)) : '--';
-                let accionesHtml = '';
-                let widthClass = '';
-
-                if (tieneValor) {
-                    const valorStr = String(valorMostrar);
-                    const valorEscapadoJs = valorStr.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-
-                    if (keyLower.includes('correo') || keyLower.includes('email')) {
-                        valorHtml = `<a href="mailto:${escapeHtml(valorStr)}">${escapeHtml(valorStr)}</a>`;
-                        accionesHtml = `<button class="detalle-field-action" onclick="copiarAlPortapapeles('${valorEscapadoJs}', 'Correo')" title="Copiar correo"><i class="fa-regular fa-copy"></i></button>`;
-                    } else if ((keyLower.includes('telefono') || keyLower.includes('celular')) && valorStr !== '--') {
-                        valorHtml = `<a href="tel:${escapeHtml(valorStr)}">${escapeHtml(valorStr)}</a>`;
-                        accionesHtml = `<button class="detalle-field-action" onclick="copiarAlPortapapeles('${valorEscapadoJs}', 'Teléfono')" title="Copiar teléfono"><i class="fa-regular fa-copy"></i></button>`;
-                    } else if (keyLower.includes('coordenada') || keyLower.includes('ubicacion')) {
-                        const coords = valorStr.replace(/\s/g, '');
-                        valorHtml = `<a href="https://www.google.com/maps?q=${encodeURIComponent(coords)}" target="_blank" rel="noopener">${escapeHtml(valorStr)} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.65em;"></i></a>`;
-                        widthClass = 'detalle-field-wide';
-                    } else if (keyLower.includes('nota') || keyLower.includes('direccion')) {
-                        widthClass = 'detalle-field-wide';
-                    }
-                }
-
-                html += `<div class="detalle-field ${widthClass}">
-                    <div class="detalle-field-icon"><i class="fa-solid ${iconoCampo(keyLower)}"></i></div>
-                    <div class="detalle-field-body">
-                        <div class="detalle-field-label">${escapeHtml(labelCampo(k))}</div>
-                        <div class="detalle-field-value">${valorHtml}</div>
-                    </div>
-                    ${accionesHtml}
-                </div>`;
+                        let anchoActual = canvas.width;
+                        while (resultado.length > LIMITE_BASE64_BYTES && anchoActual > 300) {
+                            anchoActual = Math.round(anchoActual * 0.85);
+                            const altoActual = Math.round(anchoActual * (canvas.height / canvas.width));
+                            const canvas2 = document.createElement('canvas');
+                            canvas2.width = anchoActual;
+                            canvas2.height = altoActual;
+                            canvas2.getContext('2d').drawImage(canvas, 0, 0, anchoActual, altoActual);
+                            resultado = canvas2.toDataURL('image/jpeg', calidad);
+                        }
+                        resolve(resultado);
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
             });
-
-            document.getElementById('modal-detalle-contenido').innerHTML = html || `<div class="detalle-field detalle-field-wide">
-                <div class="detalle-field-body"><div class="detalle-field-value" style="color:var(--text-muted);">No hay información adicional disponible.</div></div>
-            </div>`;
-
-            // 5) Galería de fotos
-            const fotosSection = document.getElementById('modal-detalle-fotos');
-            if (fotos.length) {
-                fotosSection.innerHTML = `<div class="detalle-fotos-section">
-                    <div class="detalle-fotos-titulo">Fotos adjuntas (${fotos.length})</div>
-                    <div class="detalle-fotos-grid">
-                        ${fotos.map(f => `<img src="${f.url}" alt="${escapeHtml(f.campo)}" class="foto-detalle-thumb" data-url="${f.url}" loading="lazy" />`).join('')}
-                    </div>
-                </div>`;
-                fotosSection.querySelectorAll('.foto-detalle-thumb').forEach(img => {
-                    img.addEventListener('click', () => abrirModalFoto(img.dataset.url));
-                    img.addEventListener('error', () => {
-                        const ph = document.createElement('div');
-                        ph.className = 'foto-detalle-placeholder';
-                        ph.innerHTML = '<i class="fa-regular fa-image"></i> No se pudo cargar esta foto';
-                        img.replaceWith(ph);
-                    });
-                });
-            } else if ((docItem.origen || '').toLowerCase() === 'web') {
-                fotosSection.innerHTML = `<div class="detalle-fotos-section"><div class="foto-detalle-placeholder"><i class="fa-regular fa-image"></i> El cliente no adjuntó ninguna foto en este registro.</div></div>`;
-            } else {
-                fotosSection.innerHTML = '';
-            }
-
-            document.getElementById('modal-detalle').classList.remove('hidden');
-        };
-
-        window.cerrarModalDetalle = function() {
-            document.getElementById('modal-detalle').classList.add('hidden');
-        };
-
-        window.abrirModalFoto = function(url) {
-            document.getElementById('modal-foto-img').src = url;
-            document.getElementById('modal-foto').classList.remove('hidden');
-            document.getElementById('modal-foto').classList.add('flex');
-        };
-
-        window.cerrarModalFoto = function() {
-            document.getElementById('modal-foto').classList.add('hidden');
-            document.getElementById('modal-foto').classList.remove('flex');
-            document.getElementById('modal-foto-img').src = '';
-        };
-
-        window.abrirEditarCenso = function(id) {
-            const docItem = allDocs.find(d => d.id === id);
-            if (!docItem) {
-                mostrarToast('Registro no encontrado', 'error');
-                return;
-            }
-            document.getElementById('edit-censo-id').value = id;
-            document.getElementById('edit-censo-estado').value = docItem.estado || 'Pendiente';
-            document.getElementById('edit-censo-notas').value = docItem.notas || '';
-            document.getElementById('edit-censo-titulo-texto').innerText = `Editar: ${getNombreCompleto(docItem)}`;
-            document.getElementById('modal-editar-censo').classList.remove('hidden');
-        };
-
-        window.cerrarModalEditarCenso = function() {
-            document.getElementById('modal-editar-censo').classList.add('hidden');
-        };
-
-        window.guardarEdicionCenso = async function() {
-            const id = document.getElementById('edit-censo-id').value;
-            const estado = document.getElementById('edit-censo-estado').value;
-            const notas = document.getElementById('edit-censo-notas').value.trim();
-            const docItem = allDocs.find(d => d.id === id);
-            if (!docItem) return;
-
-            const coleccion = obtenerColeccionPorOrigen(docItem.origen);
-            try {
-                const docRef = doc(db, coleccion, id);
-                await updateDoc(docRef, { estado, notas, actualizado: serverTimestamp() });
-                mostrarToast('Registro actualizado correctamente', 'success');
-                cerrarModalEditarCenso();
-            } catch (err) {
-                console.error(err);
-                mostrarToast('Error al actualizar registro', 'error');
-            }
-        };
-
-        // ===== NUEVA FUNCIÓN ELIMINAR CONTRATO =====
-        window.eliminarContrato = async function(id) {
-            if (!ADMIN_EMAILS.includes(usuarioEmail)) {
-                mostrarToast('No tienes permisos para eliminar contratos', 'warning');
-                return;
-            }
-            const docItem = allDocs.find(d => d.id === id);
-            if (!docItem) {
-                mostrarToast('Registro no encontrado', 'error');
-                return;
-            }
-            if (!confirm(`¿Estás seguro de eliminar este contrato de ${getNombreCompleto(docItem)}? Esta acción no se puede deshacer.`)) return;
-
-            const coleccion = obtenerColeccionPorOrigen(docItem.origen);
-            try {
-                await deleteDoc(doc(db, coleccion, id));
-                mostrarToast('Contrato eliminado correctamente', 'success');
-            } catch (err) {
-                console.error(err);
-                mostrarToast('Error al eliminar contrato', 'error');
-            }
-        };
-
-        function ocultarPreloader() {
-            const preloader = document.getElementById('app-preloader');
-            if (preloader && !preloader.classList.contains('fade-out')) {
-                preloader.classList.add('fade-out');
-                setTimeout(() => preloader.remove(), 400);
-            }
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                loginContainer.classList.add('hidden');
-                appContainer.classList.remove('hidden');
-                await verificarVinculacion(user.uid, user.email);
-                suscribirseUsuarios();
-                suscribirseFirestore();
-                suscribirseUbicaciones();
-                const savedSec = sessionStorage.getItem('seccion') || 'dashboard';
-                cambiarSeccion(savedSec);
-            } else {
-                if (unsubscribeFirestore) unsubscribeFirestore();
-                if (unsubscribeUbicaciones) unsubscribeUbicaciones();
-                if (unsubscribeUsuarios) unsubscribeUsuarios();
-                appContainer.classList.add('hidden');
-                loginContainer.classList.remove('hidden');
-                userAvatar.classList.add('hidden');
-                userNameDisplay.classList.add('hidden');
-                usuarioPromotor = null;
-                usuarioUid = null;
-                usuarioEmail = null;
-                allDocs = [];
-                previousIds.clear();
+        function resetBoton() {
+            btn.disabled = false;
+            btn.innerHTML = BTN_DEFAULT_HTML;
+        }
+
+        // --- Envío del formulario ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Validación completa de todos los campos requeridos (antes solo se
+            // validaban la foto y las coordenadas; el resto se podía enviar vacío).
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                mostrarToast('Completa todos los campos obligatorios (*).', 'warning');
+                return;
             }
-            ocultarPreloader();
+
+            const file = fileInput.files[0];
+            if (!file) {
+                mostrarToast('Por favor selecciona una foto de la cédula.', 'warning');
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                mostrarToast('El archivo debe ser una imagen (jpg, png, etc.).', 'warning');
+                return;
+            }
+            if (file.size > MAX_FILE_SIZE_BYTES) {
+                mostrarToast('La imagen es demasiado grande (máx. 15MB). Usa una foto más liviana.', 'warning');
+                return;
+            }
+
+            const planSeleccionado = document.querySelector('input[name="plan"]:checked');
+            if (!planSeleccionado) {
+                mostrarToast('Selecciona un plan de Internet.', 'warning');
+                return;
+            }
+
+            if (!promotorSelect.value) {
+                mostrarToast('Selecciona el promotor responsable.', 'warning');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = BTN_SENDING_HTML;
+
+            try {
+                const base64 = await comprimirImagen(file);
+
+                const data = {
+                    nombres: document.getElementById('nombres').value.trim(),
+                    apellidos: document.getElementById('apellidos').value.trim(),
+                    cedula: document.getElementById('cedula').value.trim(),
+                    correo: document.getElementById('correo').value.trim(),
+                    direccion: document.getElementById('direccion').value.trim(),
+                    referencia: document.getElementById('referencia').value.trim(),
+                    coordenadas: coordInput.value.trim(),
+                    sector: document.getElementById('sector').value.trim(),
+                    ciudad: document.getElementById('ciudad').value.trim(),
+                    telefono1: document.getElementById('telefono1').value.trim(),
+                    telefono2: document.getElementById('telefono2').value.trim(),
+                    plan: planSeleccionado.value,
+                    promotor: promotorSelect.value,
+                    foto_binaria: base64,
+                    fecha_registro: serverTimestamp(),
+                    origen: 'Web'
+                };
+
+                await addDoc(collection(db, "portal_web"), data);
+
+                mostrarToast('✅ Solicitud registrada con éxito.', 'success');
+                form.reset();
+                fileInput.value = '';
+                ocultarMapa();
+                resetBoton();
+            } catch (error) {
+                console.error(error);
+                mostrarToast('Error al enviar la solicitud. Intenta de nuevo.', 'error');
+                resetBoton();
+            }
         });
     </script>
 </body>
