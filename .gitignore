@@ -1,0 +1,28 @@
+# Credenciales y secretos (NUNCA subir)
+*.json
+!package.json
+!package-lock.json
+!firebase.json
+!firestore.rules
+!storage.rules
+!tsconfig.json
+!jsconfig.json
+
+# Service Account de Firebase (crítico)
+*firebase-adminsdk*.json
+*service-account*.json
+*serviceAccount*.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Entorno
+.env
+.env.local
+.env.*.local
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log
